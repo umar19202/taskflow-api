@@ -13,6 +13,9 @@ if [ ! -d "vendor" ]; then
     composer install --no-interaction --optimize-autoloader
 fi
 
+# Ensure writable directories are accessible by www-data
+chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
 # Ensure application encryption key is set
 if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force

@@ -1,0 +1,13 @@
+.git
+.gitattributes
+.gitignore
+.env
+.vendor
+vendor
+node_modules
+docker-compose.yml
+.dockerignore
+.idea
+.vscode
+*.md
+tests
