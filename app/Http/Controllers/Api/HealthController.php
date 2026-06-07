@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 
 class HealthController extends Controller
@@ -30,6 +32,20 @@ class HealthController extends Controller
             }
         } catch (\Throwable $e) {
             $checks['redis'] = 'unavailable';
+        }
+
+        try {
+            Cache::store()->has('health_check');
+            $checks['cache'] = 'ok';
+        } catch (\Throwable $e) {
+            $checks['cache'] = 'unavailable';
+        }
+
+        try {
+            Queue::connection();
+            $checks['queue'] = 'ok';
+        } catch (\Throwable $e) {
+            $checks['queue'] = 'unavailable';
         }
 
         $allHealthy = ! in_array('unavailable', $checks);
