@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\ProjectCreated;
+use App\Listeners\AddOwnerAsProjectMember;
 use App\Support\ApiResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,12 +15,24 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Contracts\Repositories\ProjectRepositoryInterface::class,
+            \App\Repositories\ProjectRepository::class,
+        );
     }
 
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->registerEvents();
+    }
+
+    protected function registerEvents(): void
+    {
+        Event::listen(
+            ProjectCreated::class,
+            AddOwnerAsProjectMember::class,
+        );
     }
 
     protected function configureRateLimiting(): void
