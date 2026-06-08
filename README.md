@@ -8,10 +8,14 @@ This repository contains the backend implementation for TaskFlow API. The curren
 
 - user authentication with Laravel Sanctum
 - authenticated project CRUD operations
+- task CRUD with filtering, status management, and priority
 - request validation with Form Requests
 - structured controller → service → repository flow
 - DTO-based data transfer for create/update operations
-- Redis-backed caching for project lists and single project retrieval
+- Redis-backed caching with Russian Doll pattern for task lists
+- composable query filter chain for task listing
+- domain events for async side effects
+- action classes for single-purpose operations
 - authorization using policies
 - API resource responses with consistent JSON envelopes
 - Docker-friendly Laravel setup
@@ -48,13 +52,24 @@ Authentication is handled with Laravel Sanctum, and protected API routes require
 
 Project requests are validated with `StoreProjectRequest` and `UpdateProjectRequest`, and updates use a DTO to pass only provided values.
 
+### Tasks module
+
+- `GET /api/v1/projects/{project}/tasks` — list tasks with filter, sort, and pagination
+- `POST /api/v1/projects/{project}/tasks` — create a task
+- `GET /api/v1/tasks/{task}` — show a single task (shallow route)
+- `PUT/PATCH /api/v1/tasks/{task}` — update task status, priority, assignee, etc.
+- `DELETE /api/v1/tasks/{task}` — soft delete a task
+
+Tasks support the following filters via query parameters: `status`, `priority`, `assigned_to`, `overdue`, `sort_by`, `sort_dir`. Status changes fire a `TaskStatusChanged` domain event.
+
 ### Cache handling
 
-Caching is implemented in `App\Services\ProjectService`:
+Caching is implemented in `App\Services\ProjectService` and `App\Services\TaskService`:
 
 - project list pages are cached using Redis tags per user
 - single project retrieval is cached with a dedicated cache key
 - cache entries are invalidated after create, update, and delete operations
+- task list queries use Russian Doll caching — cache key embeds the project's `updated_at` timestamp, so any task write automatically busts all cached filter variants
 
 ## Architecture
 
@@ -66,8 +81,11 @@ The application follows a layered architecture with separation of concerns:
 - `app/Services/` — business orchestration, caching, and event dispatching
 - `app/Repositories/` — Eloquent persistence operations
 - `app/Policies/` — authorization rules for model access
+- `app/Filters/` — composable query filter chains (e.g., `TaskQueryFilter`)
 - `app/Http/Resources/` — API response formatting
 - `app/Support/ApiResponse.php` — standardized response wrapper
+- `app/Support/Enums/` — PHP 8.1 backed enums for task status and priority
+- `app/Actions/` — single-purpose action classes for complex operations
 
 ## Code structure highlights
 
@@ -99,17 +117,21 @@ The application follows a layered architecture with separation of concerns:
 
 Key directories used in this implementation:
 
+- `app/Actions/` — single-purpose action classes
 - `app/Contracts/Repositories/` — repository interfaces
 - `app/DTOs/Project/` — request DTOs for project create/update
+- `app/DTOs/Task/` — request DTOs for task create/update
 - `app/Events/` — domain events
+- `app/Filters/` — composable query filter chains
 - `app/Http/Controllers/Api/V1/` — API controllers
-- `app/Http/Requests/Project/` — request validation classes
+- `app/Http/Requests/Project/` — project request validation classes
+- `app/Http/Requests/Task/` — task request validation classes
 - `app/Http/Resources/` — API JSON resources
 - `app/Policies/` — model authorization policies
 - `app/Providers/` — service provider registration
 - `app/Repositories/` — data persistence
 - `app/Services/` — domain logic and caching
-- `app/Support/` — response helper utilities
+- `app/Support/` — response helper utilities and enums
 
 ## Running locally
 
