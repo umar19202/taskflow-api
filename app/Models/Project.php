@@ -39,6 +39,11 @@ class Project extends Model
             ->withTimestamps();
     }
 
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
     public function hasAccess(User $user): bool
     {
         return $this->owner_id === $user->id

@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Contracts\Repositories\ProjectRepositoryInterface;
+use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\Events\ProjectCreated;
 use App\Listeners\AddOwnerAsProjectMember;
+use App\Repositories\ProjectRepository;
+use App\Repositories\TaskRepository;
 use App\Support\ApiResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -16,8 +20,13 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
-            \App\Contracts\Repositories\ProjectRepositoryInterface::class,
-            \App\Repositories\ProjectRepository::class,
+            ProjectRepositoryInterface::class,
+            ProjectRepository::class,
+        );
+
+        $this->app->bind(
+            TaskRepositoryInterface::class,
+            TaskRepository::class,
         );
     }
 
@@ -57,7 +66,7 @@ class AppServiceProvider extends ServiceProvider
             if (in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
                 return Limit::perMinute((int) env('RATE_LIMIT_WRITES', 30))
                     ->by($request->user()?->id ?: $request->ip())
-                    ->response(fn () => ApiResponse::error('Write rate limit exceeded.', 429));
+                    ->response(fn() => ApiResponse::error('Write rate limit exceeded.', 429));
             }
             return Limit::none();
         });

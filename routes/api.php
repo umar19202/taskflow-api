@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ProjectController;
+use App\Http\Controllers\Api\V1\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', [HealthController::class, 'check'])
@@ -20,6 +21,10 @@ Route::prefix('v1')->name('v1.')->group(function () {
         Route::get('/auth/profile', [AuthController::class, 'profile'])->name('auth.profile');
 
         Route::apiResource('projects', ProjectController::class)
+            ->middleware('throttle:writes');
+
+        Route::apiResource('projects.tasks', TaskController::class)
+            ->shallow()
             ->middleware('throttle:writes');
     });
 });

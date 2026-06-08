@@ -11,7 +11,12 @@ class ProjectRepository implements ProjectRepositoryInterface
 {
     public function findById(int $id): ?Project
     {
-        return Project::with(['owner:id,name,email,created_at'])->find($id);
+        return Project::with(['owner:id,name,email,created_at'])
+            ->withCount([
+                'tasks as total_tasks',
+                'tasks as active_tasks' => fn ($q) => $q->whereNotIn('status', ['done', 'cancelled']),
+            ])
+            ->find($id);
     }
 
     public function create(array $data): Project
@@ -36,9 +41,13 @@ class ProjectRepository implements ProjectRepositoryInterface
         return Project::query()
             ->where(function ($query) use ($user) {
                 $query->where('owner_id', $user->id)
-                    ->orWhereHas('members', fn($q) => $q->where('user_id', $user->id));
+                    ->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id));
             })
             ->with(['owner:id,name,email,created_at'])
+            ->withCount([
+                'tasks as total_tasks',
+                'tasks as active_tasks' => fn ($q) => $q->whereNotIn('status', ['done', 'cancelled']),
+            ])
             ->latest()
             ->paginate($perPage);
     }
