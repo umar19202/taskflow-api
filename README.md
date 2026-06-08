@@ -1,59 +1,137 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TaskFlow API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+TaskFlow API is a Laravel 12 REST backend for project management, built with a clean service, repository, DTO, and policy architecture.
 
-## About Laravel
+## Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This repository contains the backend implementation for TaskFlow API. The current build includes:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- user authentication with Laravel Sanctum
+- authenticated project CRUD operations
+- request validation with Form Requests
+- structured controller → service → repository flow
+- DTO-based data transfer for create/update operations
+- Redis-backed caching for project lists and single project retrieval
+- authorization using policies
+- API resource responses with consistent JSON envelopes
+- Docker-friendly Laravel setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech stack
 
-## Learning Laravel
+- PHP 8.2
+- Laravel 12
+- Laravel Sanctum 4
+- Redis (cache)
+- MySQL-compatible database
+- Docker / Docker Compose
+- PHPUnit for testing
+- Predis client for Redis
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Implemented features
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Authentication
 
-## Laravel Sponsors
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/logout`
+- `GET /api/v1/auth/profile`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Authentication is handled with Laravel Sanctum, and protected API routes require a valid bearer token.
 
-### Premium Partners
+### Projects module
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- `GET /api/v1/projects`
+- `POST /api/v1/projects`
+- `GET /api/v1/projects/{id}`
+- `PUT/PATCH /api/v1/projects/{id}`
+- `DELETE /api/v1/projects/{id}`
 
-## Contributing
+Project requests are validated with `StoreProjectRequest` and `UpdateProjectRequest`, and updates use a DTO to pass only provided values.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Cache handling
 
-## Code of Conduct
+Caching is implemented in `App\Services\ProjectService`:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- project list pages are cached using Redis tags per user
+- single project retrieval is cached with a dedicated cache key
+- cache entries are invalidated after create, update, and delete operations
 
-## Security Vulnerabilities
+## Architecture
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The application follows a layered architecture with separation of concerns:
 
-## License
+- `app/Http/Controllers/Api/V1/` — HTTP controllers that handle request routing and responses
+- `app/Http/Requests/` — validation logic for incoming API data
+- `app/DTOs/` — typed request payload objects for service methods
+- `app/Services/` — business orchestration, caching, and event dispatching
+- `app/Repositories/` — Eloquent persistence operations
+- `app/Policies/` — authorization rules for model access
+- `app/Http/Resources/` — API response formatting
+- `app/Support/ApiResponse.php` — standardized response wrapper
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Code structure highlights
+
+### ProjectController
+
+- accepts validated request data
+- uses DTOs to map valid inputs
+- delegates business logic to `ProjectService`
+- returns JSON resource responses
+
+### UpdateProjectDTO
+
+- accepts optional `name`, `description`, and `status`
+- converts incoming validated data into an array suitable for partial updates
+- filters out null values so only supplied fields are updated
+
+### ProjectService
+
+- orchestrates project creation, update, delete, list, and retrieval
+- controls cache invalidation for list and single project responses
+- keeps controller logic thin and reusable
+
+### ProjectRepository
+
+- encapsulates Eloquent interactions for projects
+- keeps query logic separated from service orchestration
+
+## Project folder structure
+
+Key directories used in this implementation:
+
+- `app/Contracts/Repositories/` — repository interfaces
+- `app/DTOs/Project/` — request DTOs for project create/update
+- `app/Events/` — domain events
+- `app/Http/Controllers/Api/V1/` — API controllers
+- `app/Http/Requests/Project/` — request validation classes
+- `app/Http/Resources/` — API JSON resources
+- `app/Policies/` — model authorization policies
+- `app/Providers/` — service provider registration
+- `app/Repositories/` — data persistence
+- `app/Services/` — domain logic and caching
+- `app/Support/` — response helper utilities
+
+## Running locally
+
+1. copy `.env.example` to `.env`
+2. install PHP dependencies:
+   ```bash
+   composer install
+   ```
+3. generate application key:
+   ```bash
+   php artisan key:generate
+   ```
+4. configure database and Redis settings in `.env`
+5. run migrations:
+   ```bash
+   php artisan migrate
+   ```
+6. start the application:
+   ```bash
+   php artisan serve
+   ```
+
+## Notes
+
+This README describes the current implementation of TaskFlow API, including authentication and project management features. The repository is structured to highlight maintainability, clean separation of responsibilities, and API-first development.
