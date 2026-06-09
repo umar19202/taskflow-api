@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TaskController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,11 @@ Route::prefix('v1')->name('v1.')->group(function () {
             ->middleware('throttle:writes');
 
         Route::apiResource('projects.tasks', TaskController::class)
+            ->shallow()
+            ->middleware('throttle:writes');
+
+        Route::apiResource('tasks.comments', CommentController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
             ->shallow()
             ->middleware('throttle:writes');
     });

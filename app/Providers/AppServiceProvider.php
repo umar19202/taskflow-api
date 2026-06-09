@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Contracts\Repositories\CommentRepositoryInterface;
 use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\Events\ProjectCreated;
 use App\Listeners\AddOwnerAsProjectMember;
+use App\Repositories\CommentRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\TaskRepository;
 use App\Support\ApiResponse;
@@ -27,6 +29,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             TaskRepositoryInterface::class,
             TaskRepository::class,
+        );
+
+        $this->app->bind(
+            CommentRepositoryInterface::class,
+            CommentRepository::class,
         );
     }
 

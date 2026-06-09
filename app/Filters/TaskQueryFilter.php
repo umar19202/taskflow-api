@@ -82,7 +82,8 @@ class TaskQueryFilter
 
     private function withEagerLoads(): static
     {
-        $this->query->with(['creator:id,name', 'assignee:id,name,email']);
+        $this->query->with(['creator:id,name', 'assignee:id,name,email'])
+                    ->withCount('comments');
         return $this;
     }
 

@@ -15,6 +15,7 @@ This repository contains the backend implementation for TaskFlow API. The curren
 - Redis-backed caching with Russian Doll pattern for task lists
 - composable query filter chain for task listing
 - domain events for async side effects
+- comment CRUD with author-only update/delete policy
 - action classes for single-purpose operations
 - authorization using policies
 - API resource responses with consistent JSON envelopes
@@ -62,14 +63,24 @@ Project requests are validated with `StoreProjectRequest` and `UpdateProjectRequ
 
 Tasks support the following filters via query parameters: `status`, `priority`, `assigned_to`, `overdue`, `sort_by`, `sort_dir`. Status changes fire a `TaskStatusChanged` domain event.
 
+### Comments module
+
+- `GET /api/v1/tasks/{task}/comments` — list comments for a task
+- `POST /api/v1/tasks/{task}/comments` — create a comment
+- `PUT/PATCH /api/v1/comments/{comment}` — update a comment (author only)
+- `DELETE /api/v1/comments/{comment}` — delete a comment (author or project owner)
+
+Comments use DB transactions with after-commit event dispatch. Creating a comment fires a `CommentPosted` domain event.
+
 ### Cache handling
 
-Caching is implemented in `App\Services\ProjectService` and `App\Services\TaskService`:
+Caching is implemented in `App\Services\ProjectService`, `App\Services\TaskService`, and `App\Services\CommentService`:
 
 - project list pages are cached using Redis tags per user
 - single project retrieval is cached with a dedicated cache key
 - cache entries are invalidated after create, update, and delete operations
-- task list queries use Russian Doll caching — cache key embeds the project's `updated_at` timestamp, so any task write automatically busts all cached filter variants
+- task list queries use Russian Doll caching — cache key embeds the project's `updated_at` timestamp, so any task or comment write automatically busts all cached filter variants
+- comment writes touch the parent project, cascading invalidation to all related task caches
 
 ## Architecture
 
@@ -120,11 +131,13 @@ Key directories used in this implementation:
 - `app/Actions/` — single-purpose action classes
 - `app/Contracts/Repositories/` — repository interfaces
 - `app/DTOs/Project/` — request DTOs for project create/update
+- `app/DTOs/Comment/` — request DTOs for comment create/update
 - `app/DTOs/Task/` — request DTOs for task create/update
 - `app/Events/` — domain events
 - `app/Filters/` — composable query filter chains
 - `app/Http/Controllers/Api/V1/` — API controllers
 - `app/Http/Requests/Project/` — project request validation classes
+- `app/Http/Requests/Comment/` — comment request validation classes
 - `app/Http/Requests/Task/` — task request validation classes
 - `app/Http/Resources/` — API JSON resources
 - `app/Policies/` — model authorization policies
@@ -156,4 +169,4 @@ Key directories used in this implementation:
 
 ## Notes
 
-This README describes the current implementation of TaskFlow API, including authentication and project management features. The repository is structured to highlight maintainability, clean separation of responsibilities, and API-first development.
+This README describes the current implementation of TaskFlow API, including authentication, project management, task management, and comments features. The repository is structured to highlight maintainability, clean separation of responsibilities, and API-first development.

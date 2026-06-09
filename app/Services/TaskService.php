@@ -48,6 +48,9 @@ class TaskService
 
         $project->touch();
 
+        Cache::tags(["user:{$project->owner_id}:projects"])->flush();
+        Cache::forget("project:{$project->id}");
+
         event(new TaskCreated(
             task:      $task->load(['creator', 'assignee', 'project']),
             requestId: app()->has('request_id') ? app('request_id') : '',
@@ -64,6 +67,9 @@ class TaskService
 
         $task->project->touch();
 
+        Cache::tags(["user:{$task->project->owner_id}:projects"])->flush();
+        Cache::forget("project:{$task->project->id}");
+
         if (isset($data['status']) && $data['status'] !== $previousStatus->value) {
             event(new TaskStatusChanged(
                 task:           $task,
@@ -79,6 +85,10 @@ class TaskService
     public function delete(Task $task): void
     {
         $task->project->touch();
+
+        Cache::tags(["user:{$task->project->owner_id}:projects"])->flush();
+        Cache::forget("project:{$task->project->id}");
+
         $this->taskRepository->delete($task);
     }
 }

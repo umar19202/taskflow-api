@@ -53,7 +53,7 @@ class TaskController extends Controller
         $this->authorize('view', $task->project);
 
         return ApiResponse::success(
-            new TaskResource($task->load(['creator', 'assignee'])),
+            new TaskResource($task->load(['creator', 'assignee'])->loadCount('comments')),
             'Task retrieved.'
         );
     }
