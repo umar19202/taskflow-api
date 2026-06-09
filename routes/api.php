@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TaskController;
 use Illuminate\Support\Facades\Route;
@@ -32,5 +33,11 @@ Route::prefix('v1')->name('v1.')->group(function () {
             ->only(['index', 'store', 'update', 'destroy'])
             ->shallow()
             ->middleware('throttle:writes');
+
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/',             [NotificationController::class, 'index'])->name('index');
+            Route::patch('/{id}/read',  [NotificationController::class, 'markRead'])->name('read');
+            Route::patch('/read-all',   [NotificationController::class, 'markAllRead'])->name('read-all');
+        });
     });
 });

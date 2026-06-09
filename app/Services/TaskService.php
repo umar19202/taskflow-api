@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Task\AssignTaskAction;
 use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\DTOs\Task\CreateTaskDTO;
 use App\DTOs\Task\UpdateTaskDTO;
@@ -61,9 +62,15 @@ class TaskService
 
     public function update(Task $task, array $data): Task
     {
-        $previousStatus = $task->status;
+        $previousStatus     = $task->status;
+        $previousAssigneeId = $task->assigned_to;
 
         $task = $this->taskRepository->update($task, array_filter($data, fn ($v) => $v !== null));
+
+        if (isset($data['assigned_to']) && (int) $data['assigned_to'] !== $previousAssigneeId) {
+            $assignee = User::findOrFail($data['assigned_to']);
+            (new AssignTaskAction)->handle($task, $assignee);
+        }
 
         $task->project->touch();
 

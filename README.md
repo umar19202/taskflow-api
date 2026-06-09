@@ -16,6 +16,7 @@ This repository contains the backend implementation for TaskFlow API. The curren
 - composable query filter chain for task listing
 - domain events for async side effects
 - comment CRUD with author-only update/delete policy
+- queued notifications for task assignment via events, listeners, and jobs
 - action classes for single-purpose operations
 - authorization using policies
 - API resource responses with consistent JSON envelopes
@@ -71,6 +72,14 @@ Tasks support the following filters via query parameters: `status`, `priority`, 
 - `DELETE /api/v1/comments/{comment}` — delete a comment (author or project owner)
 
 Comments use DB transactions with after-commit event dispatch. Creating a comment fires a `CommentPosted` domain event.
+
+### Notifications module
+
+- `GET /api/v1/notifications` — paginate notifications for the authenticated user
+- `PATCH /api/v1/notifications/{id}/read` — mark a single notification as read
+- `PATCH /api/v1/notifications/read-all` — mark all notifications as read
+
+Notifications are delivered asynchronously via the queue. Creating a task with an assignee fires a `TaskCreated` event, which dispatches a queued job to store a database notification for the assignee.
 
 ### Cache handling
 

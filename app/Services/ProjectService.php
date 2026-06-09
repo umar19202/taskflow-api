@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Project\ArchiveProjectAction;
 use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\DTOs\Project\CreateProjectDTO;
 use App\DTOs\Project\UpdateProjectDTO;
@@ -61,6 +62,10 @@ class ProjectService
     public function update(Project $project, UpdateProjectDTO $dto): Project
     {
         $project = $this->projectRepository->update($project, $dto->toArray());
+
+        if ($dto->status === 'archived') {
+            (new ArchiveProjectAction)->handle($project);
+        }
 
         $this->clearProjectCache($project->id);
         $this->clearListCache($project->owner_id);
