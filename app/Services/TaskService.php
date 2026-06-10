@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Task\AssignTaskAction;
+use App\Actions\Task\ChangeTaskStatusAction;
 use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\DTOs\Task\CreateTaskDTO;
 use App\DTOs\Task\UpdateTaskDTO;
@@ -65,6 +66,9 @@ class TaskService
         $previousStatus     = $task->status;
         $previousAssigneeId = $task->assigned_to;
 
+        $statusValue = $data['status'] ?? null;
+        unset($data['status']);
+
         $task = $this->taskRepository->update($task, array_filter($data, fn ($v) => $v !== null));
 
         if (isset($data['assigned_to']) && (int) $data['assigned_to'] !== $previousAssigneeId) {
@@ -77,13 +81,8 @@ class TaskService
         Cache::tags(["user:{$task->project->owner_id}:projects"])->flush();
         Cache::forget("project:{$task->project->id}");
 
-        if (isset($data['status']) && $data['status'] !== $previousStatus->value) {
-            event(new TaskStatusChanged(
-                task:           $task,
-                previousStatus: $previousStatus,
-                newStatus:      TaskStatus::from($data['status']),
-                requestId:      app()->has('request_id') ? app('request_id') : '',
-            ));
+        if ($statusValue !== null && $statusValue !== $previousStatus->value) {
+            $task = (new ChangeTaskStatusAction)->handle($task, TaskStatus::from($statusValue));
         }
 
         return $task;
