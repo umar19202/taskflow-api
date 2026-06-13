@@ -53,7 +53,7 @@ class HealthController extends Controller
         return ApiResponse::success([
             'status' => $allHealthy ? 'healthy' : 'degraded',
             'checks' => $checks,
-            'uptime' => round(microtime(true) - LARAVEL_START, 3) . 's',
+            'uptime' => round(microtime(true) - LARAVEL_START, 3).'s',
         ], 'Health check complete', $allHealthy ? 200 : 503);
     }
 }

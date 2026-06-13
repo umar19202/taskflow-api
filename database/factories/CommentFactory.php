@@ -13,7 +13,7 @@ class CommentFactory extends Factory
         return [
             'task_id' => Task::factory(),
             'user_id' => User::factory(),
-            'body'    => fake()->paragraph(),
+            'body' => fake()->paragraph(),
         ];
     }
 }

@@ -1,0 +1,16 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+
+    level: 6
+
+    ignoreErrors:
+        # Laravel standard: untyped arrays (rules(), toArray(), etc.)
+        - identifier: missingType.iterableValue
+        # Laravel standard: model relationships without generic types
+        - identifier: missingType.generics
+        # Laravel standard: Eloquent magic properties
+        - identifier: property.notFound

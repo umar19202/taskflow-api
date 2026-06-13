@@ -20,16 +20,16 @@ class ChangeTaskStatusAction
         $task->update(['status' => $newStatus->value]);
 
         Log::info('Task status changed', [
-            'task_id'         => $task->id,
+            'task_id' => $task->id,
             'previous_status' => $previousStatus->value,
-            'new_status'      => $newStatus->value,
+            'new_status' => $newStatus->value,
         ]);
 
         event(new TaskStatusChanged(
-            task:           $task->fresh(['creator', 'assignee', 'project']),
+            task: $task->fresh(['creator', 'assignee', 'project']),
             previousStatus: $previousStatus,
-            newStatus:      $newStatus,
-            requestId:      app()->has('request_id') ? app('request_id') : '',
+            newStatus: $newStatus,
+            requestId: app()->has('request_id') ? app('request_id') : '',
         ));
 
         return $task;

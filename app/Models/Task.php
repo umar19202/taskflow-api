@@ -4,12 +4,21 @@ namespace App\Models;
 
 use App\Support\Enums\TaskPriority;
 use App\Support\Enums\TaskStatus;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property TaskStatus $status
+ * @property TaskPriority $priority
+ * @property Project $project
+ * @property User $creator
+ * @property User|null $assignee
+ * @property Collection<int, Comment> $comments
+ */
 class Task extends Model
 {
     use HasFactory, SoftDeletes;
@@ -28,9 +37,9 @@ class Task extends Model
     protected function casts(): array
     {
         return [
-            'status'     => TaskStatus::class,
-            'priority'   => TaskPriority::class,
-            'due_date'   => 'date',
+            'status' => TaskStatus::class,
+            'priority' => TaskPriority::class,
+            'due_date' => 'date',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',

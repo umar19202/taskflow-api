@@ -17,11 +17,12 @@ class SendCommentNotification implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 60;
 
     public function __construct(
         public readonly Comment $comment,
-        public readonly User   $recipient,
+        public readonly User $recipient,
         public readonly string $requestId = '',
     ) {
         $this->afterCommit();
@@ -33,8 +34,8 @@ class SendCommentNotification implements ShouldQueue
 
         Log::info('Dispatching CommentPostedNotification', [
             'comment_id' => $this->comment->id,
-            'task_id'    => $this->comment->task_id,
-            'recipient'  => $this->recipient->id,
+            'task_id' => $this->comment->task_id,
+            'recipient' => $this->recipient->id,
         ]);
 
         $this->recipient->notify(
@@ -46,8 +47,8 @@ class SendCommentNotification implements ShouldQueue
     {
         Log::error('SendCommentNotification failed', [
             'comment_id' => $this->comment->id,
-            'recipient'  => $this->recipient->id,
-            'error'      => $e->getMessage(),
+            'recipient' => $this->recipient->id,
+            'error' => $e->getMessage(),
             'request_id' => $this->requestId,
         ]);
     }

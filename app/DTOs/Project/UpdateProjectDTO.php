@@ -15,19 +15,20 @@ final readonly class UpdateProjectDTO
     public static function fromRequest(UpdateProjectRequest $request): self
     {
         $validated = $request->validated();
+
         return new self(
-            name:        $validated['name'] ?? null,
+            name: $validated['name'] ?? null,
             description: $validated['description'] ?? null,
-            status:      $validated['status'] ?? null,
+            status: $validated['status'] ?? null,
         );
     }
 
     public function toArray(): array
     {
         return array_filter([
-            'name'        => $this->name,
+            'name' => $this->name,
             'description' => $this->description,
-            'status'      => $this->status,
-        ], fn($value) => $value !== null);
+            'status' => $this->status,
+        ], fn ($value) => $value !== null);
     }
 }

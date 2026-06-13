@@ -11,14 +11,14 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id'  => Project::factory(),
-            'created_by'  => User::factory(),
+            'project_id' => Project::factory(),
+            'created_by' => User::factory(),
             'assigned_to' => null,
-            'title'       => fake()->sentence(4),
+            'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
-            'status'      => 'open',
-            'priority'    => fake()->randomElement(['low', 'medium', 'high', 'urgent']),
-            'due_date'    => fake()->optional()->date(),
+            'status' => 'open',
+            'priority' => fake()->randomElement(['low', 'medium', 'high', 'urgent']),
+            'due_date' => fake()->optional()->date(),
         ];
     }
 

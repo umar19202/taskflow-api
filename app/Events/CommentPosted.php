@@ -12,6 +12,6 @@ final class CommentPosted
 
     public function __construct(
         public readonly Comment $comment,
-        public readonly string  $requestId = '',
+        public readonly string $requestId = '',
     ) {}
 }

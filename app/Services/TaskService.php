@@ -6,9 +6,7 @@ use App\Actions\Task\AssignTaskAction;
 use App\Actions\Task\ChangeTaskStatusAction;
 use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\DTOs\Task\CreateTaskDTO;
-use App\DTOs\Task\UpdateTaskDTO;
 use App\Events\TaskCreated;
-use App\Events\TaskStatusChanged;
 use App\Filters\TaskQueryFilter;
 use App\Models\Project;
 use App\Models\Task;
@@ -25,9 +23,9 @@ class TaskService
 
     public function listForProject(Project $project, array $filters = []): LengthAwarePaginator
     {
-        $version    = $project->updated_at->timestamp;
-        $filterHash = md5(serialize($filters) . request('page', 1));
-        $cacheKey   = "project:{$project->id}:v{$version}:tasks:{$filterHash}";
+        $version = $project->updated_at->timestamp;
+        $filterHash = md5(serialize($filters).request('page', 1));
+        $cacheKey = "project:{$project->id}:v{$version}:tasks:{$filterHash}";
 
         return Cache::remember($cacheKey, 300, function () use ($project, $filters) {
             return TaskQueryFilter::apply(array_merge($filters, ['project_id' => $project->id]))
@@ -38,14 +36,14 @@ class TaskService
     public function create(Project $project, User $creator, CreateTaskDTO $dto): Task
     {
         $task = $this->taskRepository->create([
-            'project_id'  => $project->id,
-            'created_by'  => $creator->id,
+            'project_id' => $project->id,
+            'created_by' => $creator->id,
             'assigned_to' => $dto->assignedTo,
-            'title'       => $dto->title,
+            'title' => $dto->title,
             'description' => $dto->description,
-            'status'      => TaskStatus::Open,
-            'priority'    => $dto->priority,
-            'due_date'    => $dto->dueDate,
+            'status' => TaskStatus::Open,
+            'priority' => $dto->priority,
+            'due_date' => $dto->dueDate,
         ]);
 
         $project->touch();
@@ -54,7 +52,7 @@ class TaskService
         Cache::forget("project:{$project->id}");
 
         event(new TaskCreated(
-            task:      $task->load(['creator', 'assignee', 'project']),
+            task: $task->load(['creator', 'assignee', 'project']),
             requestId: app()->has('request_id') ? app('request_id') : '',
         ));
 
@@ -63,7 +61,7 @@ class TaskService
 
     public function update(Task $task, array $data): Task
     {
-        $previousStatus     = $task->status;
+        $previousStatus = $task->status;
         $previousAssigneeId = $task->assigned_to;
 
         $statusValue = $data['status'] ?? null;

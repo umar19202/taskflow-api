@@ -14,8 +14,8 @@ class NotifyTaskAssignee
         }
 
         SendTaskAssignedNotification::dispatch(
-            task:      $event->task,
-            assignee:  $event->task->assignee,
+            task: $event->task,
+            assignee: $event->task->assignee,
             requestId: $event->requestId,
         )->onQueue('notifications');
     }

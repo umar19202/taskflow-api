@@ -4,20 +4,20 @@ namespace App\Support\Enums;
 
 enum TaskStatus: string
 {
-    case Open       = 'open';
+    case Open = 'open';
     case InProgress = 'in_progress';
-    case InReview   = 'in_review';
-    case Done       = 'done';
-    case Cancelled  = 'cancelled';
+    case InReview = 'in_review';
+    case Done = 'done';
+    case Cancelled = 'cancelled';
 
     public function label(): string
     {
         return match ($this) {
-            self::Open       => 'Open',
+            self::Open => 'Open',
             self::InProgress => 'In Progress',
-            self::InReview   => 'In Review',
-            self::Done       => 'Done',
-            self::Cancelled  => 'Cancelled',
+            self::InReview => 'In Review',
+            self::Done => 'Done',
+            self::Cancelled => 'Cancelled',
         };
     }
 

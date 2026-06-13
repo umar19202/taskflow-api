@@ -21,8 +21,7 @@ class ProjectService
     public function listForUser(User $user, int $perPage = 15, int $page = 1): LengthAwarePaginator
     {
         return Cache::tags(["user:{$user->id}:projects"])
-            ->remember("page:{$page}", 300, fn() =>
-                $this->projectRepository->paginateForUser($user, $perPage)
+            ->remember("page:{$page}", 300, fn () => $this->projectRepository->paginateForUser($user, $perPage)
             );
     }
 
@@ -46,10 +45,10 @@ class ProjectService
     public function create(User $user, CreateProjectDTO $dto): Project
     {
         $project = $this->projectRepository->create([
-            'owner_id'    => $user->id,
-            'name'        => $dto->name,
+            'owner_id' => $user->id,
+            'name' => $dto->name,
             'description' => $dto->description,
-            'status'      => Project::STATUS_ACTIVE,
+            'status' => Project::STATUS_ACTIVE,
         ]);
 
         $this->clearListCache($user->id);

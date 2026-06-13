@@ -24,12 +24,12 @@ class TaskQueryFilter
     private function build(): Builder
     {
         $this->filterByProject()
-             ->filterByStatus()
-             ->filterByPriority()
-             ->filterByAssignee()
-             ->filterByDueDate()
-             ->withEagerLoads()
-             ->applyOrdering();
+            ->filterByStatus()
+            ->filterByPriority()
+            ->filterByAssignee()
+            ->filterByDueDate()
+            ->withEagerLoads()
+            ->applyOrdering();
 
         return $this->query;
     }
@@ -39,6 +39,7 @@ class TaskQueryFilter
         if ($projectId = $this->filters['project_id'] ?? null) {
             $this->query->where('project_id', $projectId);
         }
+
         return $this;
     }
 
@@ -49,6 +50,7 @@ class TaskQueryFilter
                 $this->query->where('status', $status);
             }
         }
+
         return $this;
     }
 
@@ -59,6 +61,7 @@ class TaskQueryFilter
                 $this->query->where('priority', $priority);
             }
         }
+
         return $this;
     }
 
@@ -67,6 +70,7 @@ class TaskQueryFilter
         if ($assignee = $this->filters['assigned_to'] ?? null) {
             $this->query->where('assigned_to', $assignee);
         }
+
         return $this;
     }
 
@@ -74,28 +78,31 @@ class TaskQueryFilter
     {
         if ($this->filters['overdue'] ?? false) {
             $this->query->whereNotNull('due_date')
-                        ->where('due_date', '<', now()->toDateString())
-                        ->whereNotIn('status', ['done', 'cancelled']);
+                ->where('due_date', '<', now()->toDateString())
+                ->whereNotIn('status', ['done', 'cancelled']);
         }
+
         return $this;
     }
 
     private function withEagerLoads(): static
     {
         $this->query->with(['creator:id,name', 'assignee:id,name,email'])
-                    ->withCount('comments');
+            ->withCount('comments');
+
         return $this;
     }
 
     private function applyOrdering(): static
     {
-        $sortBy  = in_array($this->filters['sort_by'] ?? null, ['due_date', 'priority', 'created_at'])
+        $sortBy = in_array($this->filters['sort_by'] ?? null, ['due_date', 'priority', 'created_at'])
             ? $this->filters['sort_by']
             : 'created_at';
 
         $sortDir = ($this->filters['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
         $this->query->orderBy($sortBy, $sortDir);
+
         return $this;
     }
 }

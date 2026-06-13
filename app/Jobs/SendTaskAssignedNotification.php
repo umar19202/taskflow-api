@@ -17,11 +17,12 @@ class SendTaskAssignedNotification implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 60;
 
     public function __construct(
-        public readonly Task   $task,
-        public readonly User   $assignee,
+        public readonly Task $task,
+        public readonly User $assignee,
         public readonly string $requestId = '',
     ) {
         $this->afterCommit();
@@ -32,7 +33,7 @@ class SendTaskAssignedNotification implements ShouldQueue
         app()->instance('request_id', $this->requestId ?: 'queue-job');
 
         Log::info('Dispatching TaskAssignedNotification', [
-            'task_id'  => $this->task->id,
+            'task_id' => $this->task->id,
             'assignee' => $this->assignee->id,
         ]);
 
@@ -44,9 +45,9 @@ class SendTaskAssignedNotification implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         Log::error('SendTaskAssignedNotification failed', [
-            'task_id'    => $this->task->id,
-            'assignee'   => $this->assignee->id,
-            'error'      => $e->getMessage(),
+            'task_id' => $this->task->id,
+            'assignee' => $this->assignee->id,
+            'error' => $e->getMessage(),
             'request_id' => $this->requestId,
         ]);
     }

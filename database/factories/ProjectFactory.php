@@ -10,10 +10,10 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            'owner_id'    => User::factory(),
-            'name'        => fake()->sentence(3),
+            'owner_id' => User::factory(),
+            'name' => fake()->sentence(3),
             'description' => fake()->paragraph(),
-            'status'      => 'active',
+            'status' => 'active',
         ];
     }
 

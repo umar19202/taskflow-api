@@ -1,0 +1,47 @@
+name: Deploy to Production
+
+on:
+  # Uncomment below to auto-deploy after CI passes
+  # workflow_run:
+  #   workflows: ["CI Pipeline"]
+  #   types:
+  #     - completed
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy via SSH
+    runs-on: ubuntu-latest
+
+    # Update this condition when switching to workflow_run trigger
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+
+    # When using workflow_run, replace line above with:
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Deploy to Live Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+          script: |
+            echo "Starting Deployment..."
+            cd /var/www/taskflow-api
+
+            php artisan down --retry=60 || true
+            git pull origin main
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan event:cache
+            php artisan view:cache
+
+            sudo supervisorctl restart taskflow-worker:*
+            php artisan up
+            echo "Deployment Complete"

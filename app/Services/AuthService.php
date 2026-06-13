@@ -13,8 +13,8 @@ class AuthService
     public function register(RegisterDTO $dto): array
     {
         $user = User::create([
-            'name'     => $dto->name,
-            'email'    => $dto->email,
+            'name' => $dto->name,
+            'email' => $dto->email,
             'password' => $dto->password,
         ]);
 

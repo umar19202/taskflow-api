@@ -5,7 +5,6 @@ namespace Tests\Unit\Services;
 use App\DTOs\Task\CreateTaskDTO;
 use App\Events\TaskCreated;
 use App\Models\Project;
-use App\Models\Task;
 use App\Models\User;
 use App\Services\TaskService;
 use App\Support\Enums\TaskStatus;
@@ -29,15 +28,15 @@ class TaskServiceTest extends TestCase
     {
         Event::fake([TaskCreated::class]);
 
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
 
         $this->service->create($project, $user, new CreateTaskDTO(
-            title:       'Test Task',
+            title: 'Test Task',
             description: null,
-            assignedTo:  null,
-            priority:    'high',
-            dueDate:     null,
+            assignedTo: null,
+            priority: 'high',
+            dueDate: null,
         ));
 
         Event::assertDispatched(TaskCreated::class);
@@ -45,15 +44,15 @@ class TaskServiceTest extends TestCase
 
     public function test_new_task_has_open_status_by_default(): void
     {
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
 
         $task = $this->service->create($project, $user, new CreateTaskDTO(
-            title:       'New Task',
+            title: 'New Task',
             description: null,
-            assignedTo:  null,
-            priority:    'medium',
-            dueDate:     null,
+            assignedTo: null,
+            priority: 'medium',
+            dueDate: null,
         ));
 
         $this->assertEquals(TaskStatus::Open, $task->status);
@@ -61,7 +60,7 @@ class TaskServiceTest extends TestCase
 
     public function test_creating_task_touches_project_to_invalidate_cache(): void
     {
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
 
         $originalTimestamp = $project->updated_at;

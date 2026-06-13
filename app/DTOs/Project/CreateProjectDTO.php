@@ -14,7 +14,7 @@ final readonly class CreateProjectDTO
     public static function fromRequest(StoreProjectRequest $request): self
     {
         return new self(
-            name:        $request->validated('name'),
+            name: $request->validated('name'),
             description: $request->validated('description'),
         );
     }

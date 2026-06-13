@@ -54,7 +54,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute((int) env('RATE_LIMIT_API', 60))
+            return Limit::perMinute(config('rate-limiting.api'))
                 ->by($request->user()?->id ?: $request->ip())
                 ->response(function () {
                     return ApiResponse::error('Too many requests. Please slow down.', 429);
@@ -62,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('auth', function (Request $request) {
-            return Limit::perMinute((int) env('RATE_LIMIT_AUTH', 10))
+            return Limit::perMinute(config('rate-limiting.auth'))
                 ->by($request->ip())
                 ->response(function () {
                     return ApiResponse::error('Too many authentication attempts. Try again in a minute.', 429);
@@ -71,10 +71,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('writes', function (Request $request) {
             if (in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
-                return Limit::perMinute((int) env('RATE_LIMIT_WRITES', 30))
+                return Limit::perMinute(config('rate-limiting.writes'))
                     ->by($request->user()?->id ?: $request->ip())
-                    ->response(fn() => ApiResponse::error('Write rate limit exceeded.', 429));
+                    ->response(fn () => ApiResponse::error('Write rate limit exceeded.', 429));
             }
+
             return Limit::none();
         });
     }

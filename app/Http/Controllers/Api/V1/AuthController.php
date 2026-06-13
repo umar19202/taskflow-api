@@ -23,7 +23,7 @@ class AuthController extends Controller
         $result = $this->authService->register(RegisterDTO::fromRequest($request));
 
         return ApiResponse::success([
-            'user'  => new UserResource($result['user']),
+            'user' => new UserResource($result['user']),
             'token' => $result['token'],
         ], 'Account created successfully.', 201);
     }
@@ -33,7 +33,7 @@ class AuthController extends Controller
         $result = $this->authService->login($request);
 
         return ApiResponse::success([
-            'user'  => new UserResource($result['user']),
+            'user' => new UserResource($result['user']),
             'token' => $result['token'],
         ], 'Logged in successfully.');
     }

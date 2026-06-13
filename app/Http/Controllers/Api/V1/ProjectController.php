@@ -28,7 +28,7 @@ class ProjectController extends Controller
         );
 
         return ApiResponse::paginated(
-            $projects->through(fn($p) => new ProjectResource($p)),
+            $projects->through(fn ($p) => new ProjectResource($p)),
             'Projects retrieved.'
         );
     }
@@ -47,7 +47,7 @@ class ProjectController extends Controller
     {
         $project = $this->projectService->findById($id);
 
-        if (!$project) {
+        if (! $project) {
             throw new NotFoundHttpException('Project not found.');
         }
 
@@ -60,7 +60,7 @@ class ProjectController extends Controller
     {
         $project = $this->projectService->findById($id);
 
-        if (!$project) {
+        if (! $project) {
             throw new NotFoundHttpException('Project not found.');
         }
 
@@ -78,7 +78,7 @@ class ProjectController extends Controller
     {
         $project = $this->projectService->findById($id);
 
-        if (!$project) {
+        if (! $project) {
             throw new NotFoundHttpException('Project not found.');
         }
 

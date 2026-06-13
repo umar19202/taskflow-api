@@ -33,19 +33,19 @@ class CommentService
             $comment = $this->commentRepository->create([
                 'task_id' => $task->id,
                 'user_id' => $author->id,
-                'body'    => $dto->body,
+                'body' => $dto->body,
             ]);
 
             Log::info('Comment created', [
                 'comment_id' => $comment->id,
-                'task_id'    => $task->id,
-                'author_id'  => $author->id,
+                'task_id' => $task->id,
+                'author_id' => $author->id,
             ]);
 
             $task->project->touch();
 
             event(new CommentPosted(
-                comment:   $comment->load(['author', 'task.project']),
+                comment: $comment->load(['author', 'task.project']),
                 requestId: app()->has('request_id') ? app('request_id') : '',
             ));
 

@@ -10,7 +10,7 @@ class ProjectCrudTest extends FeatureTestCase
 {
     public function test_owner_can_view_single_project(): void
     {
-        $owner   = $this->actingAsUser();
+        $owner = $this->actingAsUser();
         $project = Project::factory()->create(['owner_id' => $owner->id]);
 
         $this->getJson("/api/v1/projects/{$project->id}")
@@ -20,19 +20,19 @@ class ProjectCrudTest extends FeatureTestCase
 
     public function test_owner_can_update_project(): void
     {
-        $owner   = $this->actingAsUser();
+        $owner = $this->actingAsUser();
         $project = Project::factory()->create(['owner_id' => $owner->id]);
 
         $this->putJson("/api/v1/projects/{$project->id}", [
-            'name'        => 'Updated Name',
+            'name' => 'Updated Name',
             'description' => 'Updated description',
         ])->assertOk()
-          ->assertJsonPath('data.name', 'Updated Name');
+            ->assertJsonPath('data.name', 'Updated Name');
     }
 
     public function test_non_owner_cannot_update_project(): void
     {
-        $owner   = User::factory()->create();
+        $owner = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id]);
 
         $this->actingAsUser();
@@ -56,12 +56,12 @@ class ProjectCrudTest extends FeatureTestCase
         $this->actingAsUser();
 
         $this->postJson('/api/v1/projects', [
-            'name'        => 'Alpha Project',
+            'name' => 'Alpha Project',
             'description' => 'First project',
         ])->assertStatus(201)
-          ->assertJsonPath('data.name', 'Alpha Project')
-          ->assertJsonPath('data.total_tasks', 0)
-          ->assertJsonPath('data.active_tasks', 0);
+            ->assertJsonPath('data.name', 'Alpha Project')
+            ->assertJsonPath('data.total_tasks', 0)
+            ->assertJsonPath('data.active_tasks', 0);
 
         $this->assertDatabaseHas('projects', ['name' => 'Alpha Project']);
     }
@@ -74,8 +74,8 @@ class ProjectCrudTest extends FeatureTestCase
 
     public function test_user_only_sees_their_own_projects(): void
     {
-        $owner  = $this->actingAsUser();
-        $other  = User::factory()->create();
+        $owner = $this->actingAsUser();
+        $other = User::factory()->create();
         $myProj = Project::factory()->create(['owner_id' => $owner->id]);
         $theirP = Project::factory()->create(['owner_id' => $other->id]);
 
@@ -87,7 +87,7 @@ class ProjectCrudTest extends FeatureTestCase
 
     public function test_non_owner_cannot_delete_project(): void
     {
-        $owner   = User::factory()->create();
+        $owner = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id]);
 
         $this->actingAsUser();
@@ -98,7 +98,7 @@ class ProjectCrudTest extends FeatureTestCase
 
     public function test_owner_can_soft_delete_project(): void
     {
-        $owner   = $this->actingAsUser();
+        $owner = $this->actingAsUser();
         $project = Project::factory()->create(['owner_id' => $owner->id]);
 
         $this->deleteJson("/api/v1/projects/{$project->id}")

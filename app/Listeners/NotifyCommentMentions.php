@@ -20,7 +20,7 @@ class NotifyCommentMentions
         }
 
         SendCommentNotification::dispatch(
-            comment:   $event->comment,
+            comment: $event->comment,
             recipient: $assignee,
             requestId: $event->requestId,
         )->onQueue('notifications');

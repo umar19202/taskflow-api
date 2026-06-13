@@ -15,7 +15,7 @@ Route::prefix('v1')->name('v1.')->group(function () {
 
     Route::prefix('auth')->name('auth.')->middleware('throttle:auth')->group(function () {
         Route::post('/register', [AuthController::class, 'register'])->name('register');
-        Route::post('/login',    [AuthController::class, 'login'])->name('login');
+        Route::post('/login', [AuthController::class, 'login'])->name('login');
     });
 
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
@@ -35,9 +35,9 @@ Route::prefix('v1')->name('v1.')->group(function () {
             ->middleware('throttle:writes');
 
         Route::prefix('notifications')->name('notifications.')->group(function () {
-            Route::get('/',             [NotificationController::class, 'index'])->name('index');
-            Route::patch('/{id}/read',  [NotificationController::class, 'markRead'])->name('read');
-            Route::patch('/read-all',   [NotificationController::class, 'markAllRead'])->name('read-all');
+            Route::get('/', [NotificationController::class, 'index'])->name('index');
+            Route::patch('/{id}/read', [NotificationController::class, 'markRead'])->name('read');
+            Route::patch('/read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
         });
     });
 });

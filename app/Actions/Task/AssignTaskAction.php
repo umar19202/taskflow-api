@@ -16,8 +16,8 @@ class AssignTaskAction
         $task->update(['assigned_to' => $assignee->id]);
 
         Log::info('Task assigned', [
-            'task_id'              => $task->id,
-            'new_assignee_id'      => $assignee->id,
+            'task_id' => $task->id,
+            'new_assignee_id' => $assignee->id,
             'previous_assignee_id' => $previousAssigneeId,
         ]);
 

@@ -15,8 +15,8 @@ class ApiResponse
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $data,
-            'meta'    => self::meta(),
+            'data' => $data,
+            'meta' => self::meta(),
         ], $status);
     }
 
@@ -27,13 +27,13 @@ class ApiResponse
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $paginator->items(),
-            'meta'    => array_merge(self::meta(), [
+            'data' => $paginator->items(),
+            'meta' => array_merge(self::meta(), [
                 'pagination' => [
-                    'total'        => $paginator->total(),
-                    'per_page'     => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'per_page' => $paginator->perPage(),
                     'current_page' => $paginator->currentPage(),
-                    'last_page'    => $paginator->lastPage(),
+                    'last_page' => $paginator->lastPage(),
                 ],
             ]),
         ], 200);
@@ -47,7 +47,7 @@ class ApiResponse
         $payload = [
             'success' => false,
             'message' => $message,
-            'meta'    => self::meta(),
+            'meta' => self::meta(),
         ];
 
         if (! empty($errors)) {
@@ -61,8 +61,8 @@ class ApiResponse
     {
         return [
             'request_id' => app()->has('request_id') ? app('request_id') : null,
-            'timestamp'  => now()->toIso8601String(),
-            'version'    => 'v1',
+            'timestamp' => now()->toIso8601String(),
+            'version' => 'v1',
         ];
     }
 }

@@ -10,9 +10,9 @@ class AuthenticationTest extends FeatureTestCase
     public function test_user_can_register_with_valid_data(): void
     {
         $response = $this->postJson('/api/v1/auth/register', [
-            'name'                  => 'Umar Khan',
-            'email'                 => 'umartest@gmail.com',
-            'password'              => 'SecurePass123',
+            'name' => 'Umar Khan',
+            'email' => 'umartest@gmail.com',
+            'password' => 'SecurePass123',
             'password_confirmation' => 'SecurePass123',
         ]);
 
@@ -32,13 +32,13 @@ class AuthenticationTest extends FeatureTestCase
         User::factory()->create(['email' => 'umartest@gmail.com']);
 
         $this->postJson('/api/v1/auth/register', [
-            'name'                  => 'Umar Khan',
-            'email'                 => 'umartest@gmail.com',
-            'password'              => 'SecurePass123',
+            'name' => 'Umar Khan',
+            'email' => 'umartest@gmail.com',
+            'password' => 'SecurePass123',
             'password_confirmation' => 'SecurePass123',
         ])->assertStatus(422)
-          ->assertJsonPath('success', false)
-          ->assertJsonPath('errors.email.0', 'The email has already been taken.');
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('errors.email.0', 'The email has already been taken.');
     }
 
     public function test_user_can_login_with_correct_credentials(): void
@@ -46,10 +46,10 @@ class AuthenticationTest extends FeatureTestCase
         $user = User::factory()->create(['password' => 'SecurePass123']);
 
         $this->postJson('/api/v1/auth/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'SecurePass123',
         ])->assertOk()
-          ->assertJsonStructure(['data' => ['token']]);
+            ->assertJsonStructure(['data' => ['token']]);
     }
 
     public function test_login_rejects_wrong_password(): void
@@ -57,7 +57,7 @@ class AuthenticationTest extends FeatureTestCase
         $user = User::factory()->create();
 
         $this->postJson('/api/v1/auth/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'wrong-password',
         ])->assertStatus(401);
     }
