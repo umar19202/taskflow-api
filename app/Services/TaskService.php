@@ -29,7 +29,7 @@ class TaskService
 
         return Cache::remember($cacheKey, 300, function () use ($project, $filters) {
             return TaskQueryFilter::apply(array_merge($filters, ['project_id' => $project->id]))
-                ->paginate(15);
+                ->paginate(10);
         });
     }
 

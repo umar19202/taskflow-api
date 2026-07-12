@@ -36,7 +36,7 @@ class ProjectRepository implements ProjectRepositoryInterface
         $project->delete();
     }
 
-    public function paginateForUser(User $user, int $perPage = 15): LengthAwarePaginator
+    public function paginateForUser(User $user, int $perPage = 10): LengthAwarePaginator
     {
         return Project::query()
             ->where(function ($query) use ($user) {

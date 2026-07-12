@@ -18,7 +18,7 @@ class ProjectService
         private readonly ProjectRepositoryInterface $projectRepository,
     ) {}
 
-    public function listForUser(User $user, int $perPage = 15, int $page = 1): LengthAwarePaginator
+    public function listForUser(User $user, int $perPage = 10, int $page = 1): LengthAwarePaginator
     {
         return Cache::tags(["user:{$user->id}:projects"])
             ->remember("page:{$page}", 300, fn () => $this->projectRepository->paginateForUser($user, $perPage)

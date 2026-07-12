@@ -14,7 +14,7 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
                             <input v-model="form.email" type="email"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                 :class="{ 'border-red-500': errors.email }"
                                 placeholder="name@example.com" required autofocus>
                             <p v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email[0] }}</p>
@@ -23,14 +23,14 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <input v-model="form.password" type="password"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                 :class="{ 'border-red-500': errors.password }"
                                 placeholder="Password" required>
                             <p v-if="errors.password" class="text-red-500 text-xs mt-1">{{ errors.password[0] }}</p>
                         </div>
 
                         <button type="submit"
-                            class="w-full bg-blue-600 text-white font-medium px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                            class="w-full bg-primary text-white font-medium px-4 py-2.5 rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
                             :disabled="loading">
                             {{ loading ? 'Signing in…' : 'Sign in' }}
                         </button>
@@ -40,7 +40,7 @@
 
                     <p class="text-center mt-6 text-sm text-gray-500">
                         Don't have an account?
-                        <router-link to="/register" class="text-blue-600 hover:underline">Sign up</router-link>
+                        <router-link to="/register" class="text-primary hover:underline">Sign up</router-link>
                     </p>
                 </div>
             </div>

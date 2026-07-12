@@ -7,6 +7,10 @@ const routes = [
     { path: '/register', name: 'register', component: () => import('../pages/auth/Register.vue'), meta: { guest: true } },
     { path: '/dashboard', name: 'dashboard', component: () => import('../pages/Dashboard.vue'), meta: { requiresAuth: true } },
     { path: '/profile', name: 'profile', component: () => import('../pages/profile/ProfileSettings.vue'), meta: { requiresAuth: true } },
+    { path: '/projects', name: 'projects.index', component: () => import('../pages/projects/ProjectsIndex.vue'), meta: { requiresAuth: true } },
+    { path: '/projects/create', name: 'projects.create', component: () => import('../pages/projects/ProjectForm.vue'), meta: { requiresAuth: true } },
+    { path: '/projects/:id/edit', name: 'projects.edit', component: () => import('../pages/projects/ProjectForm.vue'), meta: { requiresAuth: true } },
+    { path: '/projects/:id', name: 'projects.show', component: () => import('../pages/projects/ProjectDetail.vue'), meta: { requiresAuth: true } },
     { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../pages/NotFound.vue') },
 ];
 

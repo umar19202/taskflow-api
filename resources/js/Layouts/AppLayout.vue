@@ -19,13 +19,14 @@ const userMenuRef = ref(null)
 
 useClickOutside(userMenuRef, () => { userMenuOpen.value = false })
 
-function logout() {
-    auth.logout()
+async function logout() {
+    await auth.logout()
     router.push({ name: 'landing' })
 }
 
 const navLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: 'ti-home' },
+    { href: '/projects', label: 'Projects', icon: 'ti-layout-kanban' },
 ]
 
 const isAdmin = computed(() => false)

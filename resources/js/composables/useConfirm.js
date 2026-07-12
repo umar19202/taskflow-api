@@ -6,7 +6,6 @@ const state = reactive({
     message: '',
     danger: false,
     resolvePromise: null,
-    rejectPromise: null,
 })
 
 export function useConfirm() {
@@ -15,20 +14,19 @@ export function useConfirm() {
         state.message = options.message || ''
         state.danger = options.danger || false
         state.visible = true
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             state.resolvePromise = resolve
-            state.rejectPromise = reject
         })
     }
 
     function accept() {
         state.visible = false
-        state.resolvePromise?.()
+        state.resolvePromise?.(true)
     }
 
     function reject() {
         state.visible = false
-        state.rejectPromise?.()
+        state.resolvePromise?.(false)
     }
 
     return {

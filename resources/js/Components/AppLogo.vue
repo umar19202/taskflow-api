@@ -10,6 +10,6 @@ const props = defineProps({
 <template>
     <span class="inline-flex items-center gap-2">
         <img src="/images/logo-icon.svg" alt="" :width="iconSize">
-        <img v-if="showText" src="/images/logo.svg" alt="TaskFlow" height="18">
+        <span v-if="showText" class="font-bold text-base text-gray-900">TaskFlow</span>
     </span>
 </template>

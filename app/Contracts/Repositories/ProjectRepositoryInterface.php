@@ -16,5 +16,5 @@ interface ProjectRepositoryInterface
 
     public function delete(Project $project): void;
 
-    public function paginateForUser(User $user, int $perPage = 15): LengthAwarePaginator;
+    public function paginateForUser(User $user, int $perPage = 10): LengthAwarePaginator;
 }
