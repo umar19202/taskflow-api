@@ -93,7 +93,7 @@ async function submit() {
             await api.post('/projects', form.value)
             flash.success('Project created successfully.')
         }
-        router.push({ name: 'projects.index' })
+        setTimeout(() => router.push({ name: 'projects.index' }), 500)
     } catch (error) {
         if (error.response?.status === 422) {
             errors.value = error.response.data.errors ?? {}

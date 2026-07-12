@@ -16,7 +16,7 @@ watch(
         visible.value = true
 
         clearTimeout(timer)
-        timer = setTimeout(() => { visible.value = false }, 4000)
+        timer = setTimeout(() => { visible.value = false; flash.clear() }, 4000)
     }
 )
 
