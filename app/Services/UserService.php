@@ -14,8 +14,7 @@ class UserService
 
     public function all(): Collection
     {
-        return Cache::remember('users:all', 300, fn () =>
-            $this->userRepository->getAll()
+        return Cache::remember('users:all', 300, fn () => $this->userRepository->getAll()
         );
     }
 }
