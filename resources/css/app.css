@@ -171,6 +171,7 @@ button { cursor: pointer; }
 /* ─── Table ──────────────────────────────────────────────────────────────────── */
 
 @layer components {
+    .table-wrap            { @apply overflow-x-auto; }
     .inv-table             { @apply w-full text-sm text-left whitespace-nowrap; }
     .inv-table thead tr    { @apply bg-gray-100; }
     .inv-table th          { @apply px-4 py-3 font-normal text-gray-700 border-b border-gray-200; }

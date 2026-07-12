@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TaskController;
+use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', [HealthController::class, 'check'])
@@ -39,5 +40,7 @@ Route::prefix('v1')->name('v1.')->group(function () {
             Route::patch('/{id}/read', [NotificationController::class, 'markRead'])->name('read');
             Route::patch('/read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
         });
+
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
     });
 });

@@ -21,7 +21,8 @@
         </div>
 
         <div v-else class="card">
-            <table class="inv-table">
+            <div class="table-wrap">
+                <table class="inv-table">
                 <thead>
                     <tr>
                         <th class="w-10">#</th>
@@ -68,6 +69,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
 
             <Pagination v-if="links" :links="links" @page-change="fetchProjects" />
         </div>

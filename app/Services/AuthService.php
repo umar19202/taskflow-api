@@ -2,21 +2,29 @@
 
 namespace App\Services;
 
+use App\Contracts\Repositories\UserRepositoryInterface;
 use App\DTOs\Auth\RegisterDTO;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
 {
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository,
+    ) {}
+
     public function register(RegisterDTO $dto): array
     {
-        $user = User::create([
+        $user = $this->userRepository->create([
             'name' => $dto->name,
             'email' => $dto->email,
             'password' => $dto->password,
         ]);
+
+        Cache::forget('users:all');
 
         $token = $user->createToken('api-token', ['*'])->plainTextToken;
 
@@ -25,7 +33,7 @@ class AuthService
 
     public function login(LoginRequest $request): array
     {
-        $user = User::where('email', $request->validated('email'))->first();
+        $user = $this->userRepository->findByEmail($request->validated('email'));
 
         if (! $user || ! Hash::check($request->validated('password'), $user->password)) {
             throw new AuthenticationException('Invalid credentials.');

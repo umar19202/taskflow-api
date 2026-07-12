@@ -5,11 +5,13 @@ namespace App\Providers;
 use App\Contracts\Repositories\CommentRepositoryInterface;
 use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\Contracts\Repositories\TaskRepositoryInterface;
+use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Events\ProjectCreated;
 use App\Listeners\AddOwnerAsProjectMember;
 use App\Repositories\CommentRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\TaskRepository;
+use App\Repositories\UserRepository;
 use App\Support\ApiResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -34,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             CommentRepositoryInterface::class,
             CommentRepository::class,
+        );
+
+        $this->app->bind(
+            UserRepositoryInterface::class,
+            UserRepository::class,
         );
     }
 

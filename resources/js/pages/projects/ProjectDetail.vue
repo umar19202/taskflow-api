@@ -6,39 +6,43 @@
 
         <template v-else-if="project">
             <div class="mb-6">
-                <router-link to="/projects" class="text-sm text-gray-500 hover:text-primary inline-flex items-center gap-1 mb-2">
+                <router-link to="/projects" class="btn btn-light btn-sm mb-4">
                     <i class="ti ti-arrow-left"></i>
                     Back to Projects
                 </router-link>
 
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h1 class="text-2xl font-normal mb-1">{{ project.name }}</h1>
-                        <p v-if="project.description" class="text-gray-500">{{ project.description }}</p>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span class="badge" :class="project.status === 'active' ? 'badge-success' : 'badge-warning'">
-                            {{ project.status }}
-                        </span>
-                        <router-link :to="`/projects/${project.id}/edit`" class="btn btn-light btn-icon btn-sm">
-                            <i class="ti ti-pencil"></i>
-                        </router-link>
-                    </div>
-                </div>
+                <div class="card">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <h1 class="text-2xl font-semibold">{{ project.name }}</h1>
+                                <p v-if="project.description" class="text-gray-500 mt-2 leading-relaxed">{{ project.description }}</p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="badge" :class="project.status === 'active' ? 'badge-success' : 'badge-warning'">
+                                    {{ project.status }}
+                                </span>
+                                <router-link :to="`/projects/${project.id}/edit`" class="btn btn-light btn-icon btn-sm">
+                                    <i class="ti ti-pencil"></i>
+                                </router-link>
+                            </div>
+                        </div>
 
-                <div class="flex gap-4 mt-4">
-                    <div class="text-sm">
-                        <span class="text-gray-400">Total tasks:</span>
-                        <span class="font-medium ml-1">{{ project.total_tasks }}</span>
-                    </div>
-                    <div class="text-sm">
-                        <span class="text-gray-400">Active:</span>
-                        <span class="font-medium ml-1">{{ project.active_tasks }}</span>
+                        <div class="flex gap-6 mt-5 pt-5 border-t border-gray-100">
+                            <div class="text-sm">
+                                <span class="text-gray-400">Total tasks:</span>
+                                <span class="font-semibold ml-1 text-gray-800">{{ project.total_tasks }}</span>
+                            </div>
+                            <div class="text-sm">
+                                <span class="text-gray-400">Active:</span>
+                                <span class="font-semibold ml-1 text-gray-800">{{ project.active_tasks }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
+                <div class="card">
                 <div class="card-header">
                     <h4 class="text-base font-medium mb-0">Tasks</h4>
                     <button class="btn btn-primary btn-sm">
@@ -51,7 +55,8 @@
                     No tasks yet.
                 </div>
 
-                <table v-else class="inv-table">
+                <div v-else class="table-wrap">
+                    <table class="inv-table">
                     <thead>
                         <tr>
                             <th>Title</th>
@@ -95,12 +100,14 @@
                                 </div>
                             </td>
                         </tr>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                    </div>
 
                 <Pagination v-if="taskLinks" :links="taskLinks" @page-change="fetchTasks" />
             </div>
         </template>
+
     </AppLayout>
 </template>
 
@@ -113,7 +120,6 @@ import Spinner from '../../Components/Spinner.vue'
 import api from '../../services/api'
 import { useFlashStore } from '../../stores/flash'
 import { useConfirm } from '../../composables/useConfirm'
-
 const route = useRoute()
 const flash = useFlashStore()
 const { confirm } = useConfirm()
