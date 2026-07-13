@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Laravel\Sanctum\Sanctum;
 use Tests\Feature\FeatureTestCase;
 
 class TaskTest extends FeatureTestCase
@@ -190,5 +191,79 @@ class TaskTest extends FeatureTestCase
 
         $response->assertOk();
         $this->assertCount(1, $response->json('data'));
+    }
+
+    public function test_assigning_task_adds_assignee_as_project_member(): void
+    {
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+
+        $this->postJson("/api/v1/projects/{$project->id}/tasks", [
+            'title' => 'Collaborative task',
+            'priority' => 'medium',
+            'assigned_to' => $assignee->id,
+        ])->assertStatus(201);
+
+        $this->assertDatabaseHas('project_user', [
+            'project_id' => $project->id,
+            'user_id' => $assignee->id,
+            'role' => 'member',
+        ]);
+    }
+
+    public function test_assignee_can_view_project_after_being_assigned(): void
+    {
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id]);
+
+        $this->putJson("/api/v1/tasks/{$task->id}", [
+            'assigned_to' => $assignee->id,
+        ])->assertOk();
+
+        Sanctum::actingAs($assignee);
+
+        $this->getJson("/api/v1/projects/{$project->id}")
+            ->assertOk()
+            ->assertJsonPath('data.name', $project->name);
+    }
+
+    public function test_assignee_can_comment_on_task_after_being_assigned(): void
+    {
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id]);
+
+        $this->putJson("/api/v1/tasks/{$task->id}", [
+            'assigned_to' => $assignee->id,
+        ])->assertOk();
+
+        Sanctum::actingAs($assignee);
+
+        $this->postJson("/api/v1/tasks/{$task->id}/comments", [
+            'body' => 'Assignee comment',
+        ])->assertStatus(201)
+            ->assertJsonPath('data.body', 'Assignee comment');
+    }
+
+    public function test_assignee_sees_project_in_their_list(): void
+    {
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id]);
+
+        $this->putJson("/api/v1/tasks/{$task->id}", [
+            'assigned_to' => $assignee->id,
+        ])->assertOk();
+
+        Sanctum::actingAs($assignee);
+
+        $projectIds = collect($this->getJson('/api/v1/projects')->json('data'))->pluck('id');
+
+        $this->assertContains($project->id, $projectIds);
     }
 }

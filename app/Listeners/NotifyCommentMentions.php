@@ -9,20 +9,26 @@ class NotifyCommentMentions
 {
     public function handle(CommentPosted $event): void
     {
-        $assignee = $event->comment->task->assignee;
+        $comment = $event->comment;
+        $assignee = $comment->task->assignee;
+        $projectOwner = $comment->task->project->owner;
+        $authorId = (int) $comment->user_id;
 
-        if ($assignee === null) {
-            return;
+        if ($assignee && $authorId !== (int) $assignee->id) {
+            SendCommentNotification::dispatch(
+                comment: $comment,
+                recipient: $assignee,
+                requestId: $event->requestId,
+            )->onQueue('notifications');
         }
 
-        if ((int) $assignee->id === (int) $event->comment->user_id) {
-            return;
+        if ($projectOwner && $authorId !== (int) $projectOwner->id
+            && (! $assignee || (int) $projectOwner->id !== (int) $assignee->id)) {
+            SendCommentNotification::dispatch(
+                comment: $comment,
+                recipient: $projectOwner,
+                requestId: $event->requestId,
+            )->onQueue('notifications');
         }
-
-        SendCommentNotification::dispatch(
-            comment: $event->comment,
-            recipient: $assignee,
-            requestId: $event->requestId,
-        )->onQueue('notifications');
     }
 }

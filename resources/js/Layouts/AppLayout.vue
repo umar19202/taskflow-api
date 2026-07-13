@@ -6,6 +6,7 @@ import { useClickOutside } from '../composables/useClickOutside'
 import PageLoader from '../Components/PageLoader.vue'
 import FlashMessage from '../Components/FlashMessage.vue'
 import ConfirmModal from '../Components/ConfirmModal.vue'
+import NotificationBell from '../Components/NotificationBell.vue'
 import AppLogo from '../Components/AppLogo.vue'
 
 const auth = useAuthStore()
@@ -67,6 +68,7 @@ const userInitials = computed(() => {
         </div>
 
         <div class="flex items-center gap-1">
+            <NotificationBell />
             <div ref="userMenuRef" class="relative">
                 <button @click="toggleUserMenu" class="focus:outline-none">
                     <span v-if="auth.user?.avatar"

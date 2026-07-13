@@ -46,6 +46,14 @@ class TaskService
             'due_date' => $dto->dueDate,
         ]);
 
+        if ($dto->assignedTo) {
+            $project->members()->syncWithoutDetaching([
+                $dto->assignedTo => ['role' => 'member'],
+            ]);
+            Cache::forget("dashboard:user:{$dto->assignedTo}");
+            Cache::tags(["user:{$dto->assignedTo}:projects"])->flush();
+        }
+
         $project->touch();
 
         Cache::tags(["user:{$project->owner_id}:projects"])->flush();
@@ -74,6 +82,8 @@ class TaskService
         if (isset($data['assigned_to']) && (int) $data['assigned_to'] !== $previousAssigneeId) {
             $assignee = User::findOrFail($data['assigned_to']);
             (new AssignTaskAction)->handle($task, $assignee);
+            Cache::forget("dashboard:user:{$assignee->id}");
+            Cache::tags(["user:{$assignee->id}:projects"])->flush();
         }
 
         $task->project->touch();

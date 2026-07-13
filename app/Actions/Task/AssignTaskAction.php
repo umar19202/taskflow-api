@@ -15,6 +15,10 @@ class AssignTaskAction
 
         $task->update(['assigned_to' => $assignee->id]);
 
+        $task->project->members()->syncWithoutDetaching([
+            $assignee->id => ['role' => 'member'],
+        ]);
+
         Log::info('Task assigned', [
             'task_id' => $task->id,
             'new_assignee_id' => $assignee->id,

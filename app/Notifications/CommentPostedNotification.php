@@ -19,14 +19,16 @@ class CommentPostedNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
+        $task = $this->comment->task;
+
         return [
             'type' => 'comment_posted',
             'comment_id' => $this->comment->id,
             'task_id' => $this->comment->task_id,
-            'task_title' => $this->comment->task->title,
-            'project_id' => $this->comment->task->project_id,
-            'author' => $this->comment->author->name,
-            'message' => "{$this->comment->author->name} commented on: {$this->comment->task->title}",
+            'task_title' => $task?->title,
+            'project_id' => $task?->project_id,
+            'author' => $this->comment->author?->name,
+            'message' => $task?->title ? "{$this->comment->author?->name} commented on: {$task->title}" : null,
             'request_id' => $this->requestId,
         ];
     }

@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Comments;
 
+use App\Jobs\SendCommentNotification;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Support\Facades\Queue;
+use Laravel\Sanctum\Sanctum;
 use Tests\Feature\FeatureTestCase;
 
 class CommentTest extends FeatureTestCase
@@ -136,5 +139,116 @@ class CommentTest extends FeatureTestCase
 
         $response->assertOk();
         $this->assertCount(3, $response->json('data'));
+    }
+
+    public function test_assignee_comment_notifies_owner(): void
+    {
+        Queue::fake();
+
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $project->members()->attach($assignee->id, ['role' => 'member']);
+        $task = Task::factory()->create([
+            'project_id' => $project->id,
+            'created_by' => $owner->id,
+            'assigned_to' => $assignee->id,
+        ]);
+
+        Sanctum::actingAs($assignee);
+
+        $this->postJson("/api/v1/tasks/{$task->id}/comments", [
+            'body' => 'Comment from assignee',
+        ])->assertStatus(201);
+
+        Queue::assertPushed(SendCommentNotification::class, function ($job) use ($owner) {
+            return $job->recipient->id === $owner->id;
+        });
+    }
+
+    public function test_owner_comment_notifies_assignee(): void
+    {
+        Queue::fake();
+
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create([
+            'project_id' => $project->id,
+            'created_by' => $owner->id,
+            'assigned_to' => $assignee->id,
+        ]);
+
+        $this->postJson("/api/v1/tasks/{$task->id}/comments", [
+            'body' => 'Comment from owner',
+        ])->assertStatus(201);
+
+        Queue::assertPushed(SendCommentNotification::class, function ($job) use ($assignee) {
+            return $job->recipient->id === $assignee->id;
+        });
+    }
+
+    public function test_other_member_comment_notifies_both_owner_and_assignee(): void
+    {
+        Queue::fake();
+
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $member = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $project->members()->attach($member->id, ['role' => 'member']);
+        $task = Task::factory()->create([
+            'project_id' => $project->id,
+            'created_by' => $owner->id,
+            'assigned_to' => $assignee->id,
+        ]);
+
+        Sanctum::actingAs($member);
+
+        $this->postJson("/api/v1/tasks/{$task->id}/comments", [
+            'body' => 'Comment from member',
+        ])->assertStatus(201);
+
+        Queue::assertPushed(SendCommentNotification::class, 2);
+        Queue::assertPushed(SendCommentNotification::class, fn ($job) => $job->recipient->id === $owner->id);
+        Queue::assertPushed(SendCommentNotification::class, fn ($job) => $job->recipient->id === $assignee->id);
+    }
+
+    public function test_no_self_notification_when_owner_is_also_assignee(): void
+    {
+        Queue::fake();
+
+        $owner = $this->actingAsUser();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create([
+            'project_id' => $project->id,
+            'created_by' => $owner->id,
+            'assigned_to' => $owner->id,
+        ]);
+
+        $this->postJson("/api/v1/tasks/{$task->id}/comments", [
+            'body' => 'Self comment',
+        ])->assertStatus(201);
+
+        Queue::assertNotPushed(SendCommentNotification::class);
+    }
+
+    public function test_no_notification_when_no_assignee(): void
+    {
+        Queue::fake();
+
+        $owner = $this->actingAsUser();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create([
+            'project_id' => $project->id,
+            'created_by' => $owner->id,
+            'assigned_to' => null,
+        ]);
+
+        $this->postJson("/api/v1/tasks/{$task->id}/comments", [
+            'body' => 'Comment on unassigned task',
+        ])->assertStatus(201);
+
+        Queue::assertNotPushed(SendCommentNotification::class);
     }
 }
