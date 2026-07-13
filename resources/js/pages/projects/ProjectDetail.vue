@@ -208,12 +208,13 @@
             :project-id="Number(route.params.id)"
             :task="selectedTask"
             @close="showTaskForm = false; selectedTask = null"
-            @saved="fetchTasks"
+            @saved="fetchTasks(); fetchProject()"
         />
 
         <TaskViewModal
             :show="showTaskView"
             :task="selectedTask"
+            :owner-id="project?.owner_id"
             @close="showTaskView = false; selectedTask = null"
         />
     </AppLayout>
@@ -283,6 +284,11 @@ function priorityBadge(priority) {
     }[priority] ?? 'badge-primary'
 }
 
+async function fetchProject() {
+    const { data } = await api.get(`/projects/${route.params.id}`)
+    project.value = data.data
+}
+
 async function fetchTasks(page = 1) {
     fetching.value = true
     try {
@@ -326,7 +332,7 @@ async function confirmDeleteTask(task) {
     try {
         await api.delete(`/tasks/${task.id}`)
         flash.success('Task deleted successfully.')
-        await fetchTasks()
+        await Promise.all([fetchTasks(), fetchProject()])
     } catch {
         flash.error('Failed to delete task.')
     }

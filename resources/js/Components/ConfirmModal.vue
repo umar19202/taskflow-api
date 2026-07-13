@@ -20,7 +20,7 @@ watch(visible, (val) => {
             leave-to-class="opacity-0"
         >
             <div v-if="visible"
-                 class="fixed inset-0 z-[1050] flex items-center justify-center p-4"
+                 class="fixed inset-0 z-[1070] flex items-center justify-center p-4"
                  style="background: rgba(0,0,0,0.45)"
                  @click.self="reject">
 

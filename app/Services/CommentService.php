@@ -23,8 +23,8 @@ class CommentService
     {
         return $this->commentRepository->queryByTask($task->id)
             ->with(['author:id,name,email'])
-            ->oldest()
-            ->paginate(25);
+            ->latest()
+            ->paginate(5);
     }
 
     public function create(Task $task, User $author, CreateCommentDTO $dto): Comment
