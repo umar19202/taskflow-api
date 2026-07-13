@@ -50,6 +50,8 @@ class TaskService
 
         Cache::tags(["user:{$project->owner_id}:projects"])->flush();
         Cache::forget("project:{$project->id}");
+        Cache::forget("dashboard:user:{$project->owner_id}");
+        Cache::forget("dashboard:user:{$creator->id}");
 
         event(new TaskCreated(
             task: $task->load(['creator', 'assignee', 'project']),
@@ -78,6 +80,7 @@ class TaskService
 
         Cache::tags(["user:{$task->project->owner_id}:projects"])->flush();
         Cache::forget("project:{$task->project->id}");
+        Cache::forget("dashboard:user:{$task->project->owner_id}");
 
         if ($statusValue !== null && $statusValue !== $previousStatus->value) {
             $task = (new ChangeTaskStatusAction)->handle($task, TaskStatus::from($statusValue));
@@ -92,6 +95,7 @@ class TaskService
 
         Cache::tags(["user:{$task->project->owner_id}:projects"])->flush();
         Cache::forget("project:{$task->project->id}");
+        Cache::forget("dashboard:user:{$task->project->owner_id}");
 
         $this->taskRepository->delete($task);
     }

@@ -123,4 +123,72 @@ class TaskTest extends FeatureTestCase
         $this->getJson("/api/v1/projects/{$project->id}/tasks")
             ->assertStatus(403);
     }
+
+    public function test_owner_can_delete_task(): void
+    {
+        $owner = $this->actingAsUser();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id]);
+
+        $this->deleteJson("/api/v1/tasks/{$task->id}")
+            ->assertOk()
+            ->assertJsonPath('message', 'Task deleted.');
+
+        $this->assertSoftDeleted('tasks', ['id' => $task->id]);
+    }
+
+    public function test_updating_task_assignee_fires_notification(): void
+    {
+        Queue::fake();
+
+        $owner = $this->actingAsUser();
+        $assignee = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id, 'assigned_to' => null]);
+
+        $this->putJson("/api/v1/tasks/{$task->id}", [
+            'assigned_to' => $assignee->id,
+        ])->assertOk();
+
+        Queue::assertPushed(SendTaskAssignedNotification::class);
+    }
+
+    public function test_non_owner_cannot_delete_task(): void
+    {
+        $owner = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id]);
+
+        $this->actingAsUser();
+
+        $this->deleteJson("/api/v1/tasks/{$task->id}")
+            ->assertStatus(403);
+    }
+
+    public function test_task_list_is_filterable_by_priority(): void
+    {
+        $owner = $this->actingAsUser();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id, 'priority' => 'high']);
+        Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id, 'priority' => 'low']);
+
+        $response = $this->getJson("/api/v1/projects/{$project->id}/tasks?priority=high");
+
+        $response->assertOk();
+        $this->assertCount(1, $response->json('data'));
+        $this->assertEquals('high', $response->json('data.0.priority'));
+    }
+
+    public function test_task_list_is_filterable_by_overdue(): void
+    {
+        $owner = $this->actingAsUser();
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id, 'due_date' => now()->subDay(), 'status' => 'open']);
+        Task::factory()->create(['project_id' => $project->id, 'created_by' => $owner->id, 'due_date' => now()->subDay(), 'status' => 'done']);
+
+        $response = $this->getJson("/api/v1/projects/{$project->id}/tasks?overdue=1");
+
+        $response->assertOk();
+        $this->assertCount(1, $response->json('data'));
+    }
 }

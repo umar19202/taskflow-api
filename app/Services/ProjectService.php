@@ -52,6 +52,7 @@ class ProjectService
         ]);
 
         $this->clearListCache($user->id);
+        Cache::forget("dashboard:user:{$user->id}");
 
         event(new ProjectCreated($project, $user));
 
@@ -68,6 +69,7 @@ class ProjectService
 
         $this->clearProjectCache($project->id);
         $this->clearListCache($project->owner_id);
+        Cache::forget("dashboard:user:{$project->owner_id}");
 
         return $project;
     }
@@ -78,6 +80,7 @@ class ProjectService
 
         $this->clearProjectCache($project->id);
         $this->clearListCache($project->owner_id);
+        Cache::forget("dashboard:user:{$project->owner_id}");
     }
 
     private function clearListCache(int $userId): void

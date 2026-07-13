@@ -1,16 +1,17 @@
 <template>
     <Teleport to="body">
-        <div v-if="show" class="overlay show" @click.self="$emit('close')">
-            <div class="fixed inset-0 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4" @click.stop>
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div v-if="show" class="fixed inset-0 z-[1050] bg-black/45 backdrop-blur-[1px]" @click.self="$emit('close')">
+            <div class="flex items-center justify-center min-h-full p-4" @click.stop>
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
                         <h3 class="text-base font-medium">{{ isEdit ? 'Edit Task' : 'New Task' }}</h3>
                         <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600 text-lg leading-none">
                             <i class="ti ti-x"></i>
                         </button>
                     </div>
 
-                    <form @submit.prevent="submit">
+                    <form @submit.prevent="submit" class="overflow-y-auto">
                         <div class="p-6 space-y-4 relative">
                             <div v-if="loadingUsers" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded">
                                 <svg class="animate-spin h-6 w-6 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -76,7 +77,7 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 shrink-0">
                             <button type="button" @click="$emit('close')" class="btn btn-light btn-sm">Cancel</button>
                             <button type="submit" class="btn btn-primary btn-sm" :disabled="saving">
                                 {{ saving ? 'Saving...' : (isEdit ? 'Update Task' : 'Create Task') }}
@@ -102,6 +103,10 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'saved'])
 const flash = useFlashStore()
+
+watch(() => props.show, (val) => {
+    document.body.style.overflow = val ? 'hidden' : ''
+})
 
 const isEdit = computed(() => !!props.task)
 

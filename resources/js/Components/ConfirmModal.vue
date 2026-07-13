@@ -1,7 +1,12 @@
 <script setup>
+import { watch } from 'vue'
 import { useConfirm } from '../composables/useConfirm'
 
 const { visible, title, message, danger, accept, reject } = useConfirm()
+
+watch(visible, (val) => {
+    document.body.style.overflow = val ? 'hidden' : ''
+})
 </script>
 
 <template>
@@ -15,7 +20,7 @@ const { visible, title, message, danger, accept, reject } = useConfirm()
             leave-to-class="opacity-0"
         >
             <div v-if="visible"
-                 class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                 class="fixed inset-0 z-[1050] flex items-center justify-center p-4"
                  style="background: rgba(0,0,0,0.45)"
                  @click.self="reject">
 

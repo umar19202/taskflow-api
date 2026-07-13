@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TaskController;
@@ -42,5 +43,7 @@ Route::prefix('v1')->name('v1.')->group(function () {
         });
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     });
 });
