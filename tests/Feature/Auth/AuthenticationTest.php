@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Tests\Feature\FeatureTestCase;
 
 class AuthenticationTest extends FeatureTestCase
@@ -78,5 +79,71 @@ class AuthenticationTest extends FeatureTestCase
         $this->getJson('/api/v1/auth/profile')
             ->assertOk()
             ->assertJsonPath('data.email', $user->email);
+    }
+
+    public function test_authenticated_user_can_update_name_and_email(): void
+    {
+        $user = $this->actingAsUser();
+
+        $this->putJson('/api/v1/auth/profile', [
+            'name' => 'Updated Name',
+            'email' => 'updated@gmail.com',
+        ])->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('message', 'Profile updated successfully.')
+            ->assertJsonPath('data.name', 'Updated Name')
+            ->assertJsonPath('data.email', 'updated@gmail.com');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'Updated Name',
+            'email' => 'updated@gmail.com',
+        ]);
+    }
+
+    public function test_update_profile_rejects_duplicate_email(): void
+    {
+        $this->actingAsUser();
+        User::factory()->create(['email' => 'taken@gmail.com']);
+
+        $this->putJson('/api/v1/auth/profile', [
+            'email' => 'taken@gmail.com',
+        ])->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('errors.email.0', 'The email has already been taken.');
+    }
+
+    public function test_unauthenticated_user_cannot_update_profile(): void
+    {
+        $this->putJson('/api/v1/auth/profile', [
+            'name' => 'Hacker',
+        ])->assertStatus(401);
+    }
+
+    public function test_authenticated_user_can_update_password(): void
+    {
+        $user = $this->actingAsUser();
+
+        $this->putJson('/api/v1/auth/profile', [
+            'current_password' => 'password',
+            'password' => 'NewSecurePass123',
+            'password_confirmation' => 'NewSecurePass123',
+        ])->assertOk()
+            ->assertJsonPath('message', 'Profile updated successfully.');
+
+        $this->assertTrue(Hash::check('NewSecurePass123', $user->fresh()->password));
+    }
+
+    public function test_update_password_rejects_wrong_current_password(): void
+    {
+        $this->actingAsUser();
+
+        $this->putJson('/api/v1/auth/profile', [
+            'current_password' => 'wrong-password',
+            'password' => 'NewSecurePass123',
+            'password_confirmation' => 'NewSecurePass123',
+        ])->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('errors.current_password.0', 'The current password is incorrect.');
     }
 }

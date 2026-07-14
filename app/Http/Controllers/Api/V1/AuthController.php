@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\DTOs\Auth\RegisterDTO;
+use App\DTOs\Auth\UpdateProfileDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use App\Support\ApiResponse;
@@ -50,6 +52,19 @@ class AuthController extends Controller
         return ApiResponse::success(
             new UserResource($request->user()),
             'Authenticated user retrieved.'
+        );
+    }
+
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $this->authService->updateProfile(
+            $request->user(),
+            UpdateProfileDTO::fromRequest($request)
+        );
+
+        return ApiResponse::success(
+            new UserResource($user),
+            'Profile updated successfully.'
         );
     }
 }
