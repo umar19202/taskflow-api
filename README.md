@@ -1,6 +1,6 @@
-# TaskFlow API
+# TaskFlow
 
-TaskFlow API is a Laravel 12 REST backend for project management, built with a clean service, repository, DTO, and policy architecture.
+TaskFlow is a full-stack project management SPA with a Laravel 12 REST API backend and a Vue 3 single-page application frontend. Built with clean architecture patterns — service, repository, DTO, and policy layers on the backend; Pinia stores, Vue Router, and composables on the frontend.
 
 ## Project structure
 
@@ -36,9 +36,11 @@ taskflow-api/
 │   │   │   └── V1/
 │   │   │       ├── AuthController.php
 │   │   │       ├── CommentController.php
+│   │   │       ├── DashboardController.php
 │   │   │       ├── NotificationController.php
 │   │   │       ├── ProjectController.php
-│   │   │       └── TaskController.php
+│   │   │       ├── TaskController.php
+│   │   │       └── UserController.php
 │   │   ├── Middleware/
 │   │   │   ├── ForceJsonResponse.php
 │   │   │   ├── SecurityHeaders.php
@@ -81,8 +83,10 @@ taskflow-api/
 │   ├── Services/                      # Business logic & caching
 │   │   ├── AuthService.php
 │   │   ├── CommentService.php
+│   │   ├── DashboardService.php
 │   │   ├── ProjectService.php
-│   │   └── TaskService.php
+│   │   ├── TaskService.php
+│   │   └── UserService.php
 │   └── Support/
 │       ├── ApiResponse.php            # Standard JSON envelope
 │       └── Enums/                     # TaskStatus, TaskPriority
@@ -101,16 +105,31 @@ taskflow-api/
 │   ├── nginx/default.conf
 │   └── php/Dockerfile                 # Multi-stage build
 ├── docker-compose.yml                 # app, nginx, mysql, redis, queue
+├── resources/
+│   ├── css/app.css                    # Tailwind CSS v4 with custom design tokens
+│   └── js/                            # Vue 3 SPA source
+│       ├── app.js                     # Vue app entry point (Pinia + Router)
+│       ├── App.vue                    # Root component with auth restoration
+│       ├── Components/                # Reusable UI components
+│       ├── Composables/               # Composition API hooks
+│       ├── Layouts/                   # App layout (sidebar + topbar)
+│       ├── Pages/                     # Route page components
+│       ├── Router/                    # Vue Router configuration
+│       ├── Services/                  # Axios HTTP client
+│       └── Stores/                    # Pinia state management
 ├── routes/
 │   ├── api.php                        # API route definitions
 │   ├── console.php
-│   └── web.php
+│   └── web.php                        # SPA catch-all route
 ├── tests/
 │   ├── Feature/                       # Feature tests
 │   │   ├── Auth/
+│   │   ├── Comments/
+│   │   ├── Dashboard/
+│   │   ├── Notifications/
 │   │   ├── Projects/
 │   │   ├── Tasks/
-│   │   └── Comments/
+│   │   └── Users/
 │   └── Unit/                          # Unit tests
 │       ├── Policies/
 │       └── Services/
@@ -123,8 +142,9 @@ taskflow-api/
 
 ## Overview
 
-This repository contains the backend implementation for TaskFlow API. The current build includes:
+This repository contains the full-stack implementation of TaskFlow. The current build includes:
 
+### Backend
 - user authentication with Laravel Sanctum (token-based, single-session)
 - authenticated project CRUD operations with soft deletes
 - task CRUD with filtering, status management, priority, and soft deletes
@@ -136,6 +156,7 @@ This repository contains the backend implementation for TaskFlow API. The curren
 - domain events for async side effects (TaskCreated, TaskStatusChanged, CommentPosted)
 - comment CRUD with author-only update/delete policy
 - queued notifications for task assignment and comments via events, listeners, and jobs
+- auto-add assignee as project member on task creation or assignment
 - action classes for single-purpose operations (assign, change status, archive)
 - authorization using policies (ProjectPolicy, TaskPolicy, CommentPolicy)
 - API resource responses with consistent JSON envelopes
@@ -147,19 +168,45 @@ This repository contains the backend implementation for TaskFlow API. The curren
 - CI/CD pipelines via GitHub Actions
 - database seeding with factories and seeders
 
+### Frontend
+- Vue 3 SPA with Composition API (`<script setup>`) and Pinia state management
+- Vue Router with lazy-loaded routes, navigation guards, and 404 handling
+- responsive sidebar + topbar layout (AppLayout.vue) with collapsible navigation
+- project management pages with full CRUD forms and task list with filtering
+- task detail modal with inline editing, status/priority changes, and assignee management
+- Jira-style comment threads — newest at bottom, paginated with "Show older" / "Show less"
+- notification bell with real-time badge, dropdown list, and mark-as-read
+- dashboard with live stat cards, SVG task flow chart, priority breakdown, and recent tasks table
+- authenticated HTTP client with automatic token injection and 401 redirect
+- Tailwind CSS v4 with custom primary color (#E66239) and Tabler Icons
+- flash message toast notifications with auto-dismiss
+- route-level loading states and 404 page
+
 ## Tech stack
 
+### Backend
 - PHP 8.2
 - Laravel 12
 - Laravel Sanctum 4
 - Redis (cache, queue, rate limiting, session)
 - MySQL 8 compatible database
-- Docker / Docker Compose
 - PHPUnit for testing
 - Predis client for Redis
 - PHPStan (static analysis)
 - Laravel Pint (code style)
-- GitHub Actions (CI/CD)
+
+### Frontend
+- Vue 3 (Composition API, `<script setup>`)
+- Pinia 3 (state management)
+- Vue Router 4 (lazy-loaded routes, navigation guards)
+- Tailwind CSS v4 (utility-first, custom `primary` color tokens)
+- Tabler Icons 3 (webfont icon set)
+- Vite 7 (build tool with HMR)
+- Axios (HTTP client with interceptors)
+
+### Infrastructure
+- Docker / Docker Compose (multi-stage PHP-FPM build)
+- GitHub Actions (CI/CD pipelines)
 
 ## API response format
 
@@ -276,13 +323,23 @@ Tasks support the following filters via query parameters: `status`, `priority`, 
 
 Comments use DB transactions with after-commit event dispatch. Creating a comment fires a `CommentPosted` domain event.
 
+### Dashboard module
+
+- `GET /api/v1/dashboard/stats` — aggregated stats for the authenticated user
+
+Returns task counts by status, overdue count, priority breakdown, recent tasks, and project membership stats. Responses are cached per-user and invalidated on task or project writes.
+
 ### Notifications module
 
 - `GET /api/v1/notifications` — paginate notifications for the authenticated user
 - `PATCH /api/v1/notifications/{id}/read` — mark a single notification as read
 - `PATCH /api/v1/notifications/read-all` — mark all notifications as read
 
-Notifications are delivered asynchronously via the `notifications` queue. Creating a task with an assignee fires a `TaskCreated` event, which dispatches a queued job to store a database notification for the assignee.
+Notifications are delivered asynchronously via the `notifications` queue. Key scenarios:
+
+- **Task assignment**: Creating or updating a task with an assignee fires a `TaskCreated` or `TaskStatusChanged` event, dispatching a queued database notification to the assignee. The assignee is also automatically added as a project member via `syncWithoutDetaching`.
+- **Comment notifications**: Posting a comment dispatches notifications to both the task assignee and the project owner. Self-comments and duplicate owner/assignee cases are deduplicated. Null-safe operators handle scenarios where the task or author is deleted before queue processing.
+- **Frontend polling**: The notification bell polls `/api/v1/notifications` every 10 seconds and refreshes on tab visibility change and window focus — no WebSockets required.
 
 ### Rate limiting
 
@@ -372,7 +429,7 @@ php artisan db:seed
 | `CommentPosted` | `NotifyCommentMentions` | `SendCommentNotification` | notifications |
 | `ProjectCreated` | `AddOwnerAsProjectMember` | — | sync |
 
-Events are fired from service classes after successful persistence. Listeners dispatch queued jobs for async side effects. The `request_id` is propagated from the HTTP context into each job for log traceability.
+Events are fired from service classes after successful persistence. Listeners dispatch queued jobs for async side effects. The `request_id` is propagated from the HTTP context into each job for log traceability. Listeners (`NotifyTaskAssignee`, `NotifyCommentMentions`) are auto-discovered by Laravel and require no manual registration.
 
 ## Action classes
 
@@ -380,7 +437,7 @@ Single-purpose action classes encapsulate complex operations that don't justify 
 
 | Action | Purpose |
 |--------|---------|
-| `AssignTaskAction` | Assigns a user to a task with validation |
+| `AssignTaskAction` | Assigns a user to a task, auto-adds them as project member, dispatches notification |
 | `ChangeTaskStatusAction` | Transitions task status with policy checks |
 | `ArchiveProjectAction` | Archives a project and cascades to tasks |
 
@@ -404,6 +461,53 @@ The application follows a layered architecture with separation of concerns:
 - `app/Support/ApiResponse.php` — standardized response wrapper
 - `app/Support/Enums/` — PHP 8.1 backed enums for task status and priority
 
+## Frontend architecture
+
+The frontend is a pure Vue 3 SPA (no Inertia) served by a single Blade view at `resources/views/app.blade.php`. All routing, state management, and API communication happen client-side.
+
+### Layer breakdown
+
+| Layer | Directory | Responsibility |
+|-------|-----------|----------------|
+| Entry | `app.js` | Creates Vue app, registers Pinia + Router, mounts to `#app` |
+| Routing | `Router/index.js` | 10 named routes with lazy-loaded components, auth guards (guest/authenticated) |
+| State | `Stores/` | 3 Pinia stores — `auth` (user/token), `flash` (toast messages), `notifications` (polling) |
+| Pages | `Pages/` | Route-level components — Landing, Login, Register, Dashboard, ProjectsIndex, ProjectDetail, ProjectForm, ProfileSettings, NotFound |
+| Layout | `Layouts/AppLayout.vue` | Responsive sidebar + topbar wrapper with slot-based content outlet |
+| Components | `Components/` | Reusable UI — TaskViewModal, TaskFormModal, ConfirmModal, NotificationBell, Pagination, FlashMessage, Spinner, PageLoader, AppLogo |
+| Composables | `Composables/` | Composition API hooks — `useClickOutside`, `useConfirm` |
+| HTTP | `Services/api.js` | Axios instance with base URL `/api/v1`, Bearer token interceptor, 401 redirect |
+
+### SPA routes
+
+| Path | Name | Component | Access |
+|------|------|-----------|--------|
+| `/` | landing | `Landing.vue` | Guest |
+| `/login` | login | `Login.vue` | Guest |
+| `/register` | register | `Register.vue` | Guest |
+| `/dashboard` | dashboard | `Dashboard.vue` | Authenticated |
+| `/profile` | profile | `ProfileSettings.vue` | Authenticated |
+| `/projects` | projects.index | `ProjectsIndex.vue` | Authenticated |
+| `/projects/create` | projects.create | `ProjectForm.vue` | Authenticated |
+| `/projects/:id` | projects.show | `ProjectDetail.vue` | Authenticated |
+| `/projects/:id/edit` | projects.edit | `ProjectForm.vue` | Authenticated |
+| `/:pathMatch(.*)*` | not-found | `NotFound.vue` | Public |
+
+### Key frontend features
+
+- **Authentication flow**: Login/Register forms call the API, store the Sanctum token in `localStorage`, and attach it via Axios interceptor. On 401 response, the store clears the token and redirects to `/login`. Auth state is restored on page load from `localStorage`.
+- **Task view modal**: Opens as a Teleported overlay showing full task details, inline editing of title/description/status/priority, assignee selection, and comment thread. Comments use Jira-style ordering — oldest at top, newest at bottom, paginated 5 per page. "Show older" prepends older comments; "Show less" slices back to the latest page.
+- **Notification bell**: Polls the notifications endpoint every 10 seconds. Displays an unread count badge and a dropdown list. Clicking a notification marks it read and navigates to the project. Fetches immediately on tab `visibilitychange` and window `focus` events.
+- **Dashboard**: Four stat cards (total, open, in progress, overdue), an SVG task flow chart showing real-time status distribution, priority tiles with color-coded counts, and a recent tasks table.
+- **Project detail**: Paginated task list with status/priority column badges, filter/search controls, task form modal for create/edit, and task view modal for details. The project stats sidebar refreshes after task mutations.
+
+### Component communication
+
+- Page components receive route params (`$route.params.id`) and pass them to API calls.
+- TaskViewModal and TaskFormModal use `v-model` / emits for open/close state.
+- Flash messages are triggered via the `useFlashStore` and auto-dismiss after 4 seconds.
+- The confirm dialog uses a composable (`useConfirm`) with a Teleported `ConfirmModal`.
+
 ## Testing
 
 The test suite uses PHPUnit with a custom `FeatureTestCase` base class.
@@ -412,18 +516,27 @@ The test suite uses PHPUnit with a custom `FeatureTestCase` base class.
 
 - `tests/Feature/Auth/` — registration, login, logout, profile retrieval
 - `tests/Feature/Projects/` — CRUD, authorization, pagination
-- `tests/Feature/Tasks/` — CRUD, filtering, sorting, status transitions
-- `tests/Feature/Comments/` — CRUD, author-only policies, task scoping
+- `tests/Feature/Tasks/` — CRUD, filtering, sorting, status transitions, assignee collaboration flow
+- `tests/Feature/Comments/` — CRUD, author-only policies, task scoping, notification scenarios
+- `tests/Feature/Dashboard/` — stats retrieval, scope isolation
+- `tests/Feature/Notifications/` — list, mark read, mark all read
+- `tests/Feature/Users/` — user listing
 
 ### Unit tests
 
 - `tests/Unit/Services/` — service layer isolation tests
 - `tests/Unit/Policies/` — authorization policy logic
 
-Run tests:
+Run the full suite:
 
 ```bash
 composer test
+```
+
+Run tests with coverage (requires Xdebug or PCOV, enabled in CI):
+
+```bash
+php artisan test --coverage
 ```
 
 ## CI/CD
@@ -445,10 +558,11 @@ Triggered manually via `workflow_dispatch`. SSH-based deployment:
 1. `php artisan down` — maintenance mode
 2. `git pull origin main` — fetch latest code
 3. `composer install --no-dev` — install production dependencies
-4. `php artisan migrate --force` — run database migrations
-5. Cache optimization (config, route, event, view)
-6. `supervisorctl restart` — restart queue workers
-7. `php artisan up` — bring application back online
+4. `npm ci && npm run build` — install and build frontend assets
+5. `php artisan migrate --force` — run database migrations
+6. Cache optimization (config, route, event, view)
+7. `supervisorctl restart` — restart queue workers
+8. `php artisan up` — bring application back online
 
 ## Docker
 
@@ -536,6 +650,14 @@ app/
 
 ## Running locally
 
+### Prerequisites
+
+- PHP 8.2+
+- Composer
+- Node.js 18+ / npm
+- MySQL 8+ or SQLite
+- Redis (optional — falls back to file/database drivers)
+
 ### Without Docker
 
 1. copy `.env.example` to `.env`
@@ -556,10 +678,27 @@ app/
    ```bash
    php artisan db:seed
    ```
-7. start the application:
+7. install frontend dependencies and build assets:
+   ```bash
+   npm install
+   npm run build       # production build
+   # or for development:
+   npm run dev         # Vite dev server with HMR
+   ```
+8. start the queue worker (for notifications):
+   ```bash
+   php artisan queue:work redis --queue=notifications
+   ```
+9. start the application:
    ```bash
    php artisan serve
    ```
+
+   For local development, run the full stack with a single command:
+   ```bash
+   composer dev
+   ```
+   This starts the PHP server, Vite dev server, queue worker, and log watcher concurrently.
 
 ### With Docker
 
@@ -567,13 +706,22 @@ app/
 docker compose up -d
 ```
 
-This starts all services: app, nginx (port 8000), MySQL (port 3306), Redis (port 6379), and a queue worker. Run migrations and seeders inside the app container:
+This starts all services: app, nginx (port 8000), MySQL (port 3306), Redis (port 6379), and a queue worker. Frontend assets are built during the Docker build via the multi-stage Dockerfile. Run migrations and seeders inside the app container:
 
 ```bash
 docker compose exec app php artisan migrate
 docker compose exec app php artisan db:seed
 ```
 
+For local frontend development with Docker, run Vite separately on the host:
+
+```bash
+npm install
+npm run dev
+```
+
+The Vite dev server connects to the Laravel API running in Docker through the configured `APP_URL` or CORS origin.
+
 ## Notes
 
-This README describes the current implementation of TaskFlow API, including authentication, project management, task management, and comments features. The repository is structured to highlight maintainability, clean separation of responsibilities, and API-first development.
+This README describes the current implementation of TaskFlow, including the Laravel REST API backend and the Vue 3 SPA frontend. The repository is structured to highlight maintainability, clean separation of responsibilities, and full-stack development practices. Built with a focus on production-quality patterns — layered architecture, DTOs, policies, event-driven side effects, reactive state management, and a modern component-based UI.
